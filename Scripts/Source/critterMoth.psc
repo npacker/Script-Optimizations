@@ -86,20 +86,18 @@ State AtPlant
   Event OnUpdate()
     if CheckViableDistance()
       if Spawner && Spawner.IsActiveTime()
-        float fspeed = 0.0
+        float fSpeed = 0.0
 
         if closestActor
-          fspeed = fFleeTranslationSpeed
+          fSpeed = fFleeTranslationSpeed
         else
-          fspeed = Utility.RandomFloat(fTranslationSpeedMean - fTranslationSpeedVariance, fTranslationSpeedMean + fTranslationSpeedVariance)
+          fSpeed = Utility.RandomFloat(fTranslationSpeedMean - fTranslationSpeedVariance, fTranslationSpeedMean + fTranslationSpeedVariance)
         endif
 
-        GoToNewPlant(fspeed)
+        GoToNewPlant(fSpeed)
       else
         BellShapeTranslateToRefAtSpeedAndGotoState(Spawner, fBellShapePathHeight, fTranslationSpeedMean, fMaxRotationSpeed, "KillForTheNight")
       endif
-
-      bCalculating = false
     endif
 
     closestActor = none

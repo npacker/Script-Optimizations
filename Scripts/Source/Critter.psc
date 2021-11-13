@@ -82,11 +82,11 @@ string property ApproachNodeName = "ApproachSmall01" auto
 bool property reserved auto hidden
 {should this object be invalidated for searches?}
 
-;-------------------------------------------------------------------------------
+;===============================================================================
 ;
 ; HIDDEN
 ;
-;-------------------------------------------------------------------------------
+;===============================================================================
 
 ObjectReference property hunter auto hidden
 {if being hunted, by whom?}
@@ -163,8 +163,6 @@ CritterSpawn spawnerPropVal
 string CurrentTargetState
 
 string CurrentTargetNode
-
-string CurrentMovementState = "Idle"
 
 ;-------------------------------------------------------------------------------
 ; B-Spline translation.
@@ -253,9 +251,12 @@ endState
 State BellShapeGoingUp
 
   Event OnTranslationAlmostComplete()
+    ; Empty.
   endEvent
 
   Event OnTranslationComplete()
+    GoToState("BellShapeGoingAcross")
+
     float fsecondWaypointPercent = 1.0 - fBellShapedWaypointPercent
     float fSecondWaypointX = fBellShapeStartX + fBellShapeDeltaX * fsecondWaypointPercent
     float fSecondWaypointY = fBellShapeStartY + fBellShapeDeltaY * fsecondWaypointPercent
@@ -265,7 +266,6 @@ State BellShapeGoingUp
       return
     endif
 
-    GoToState("BellShapeGoingAcross")
     SplineTranslateTo(fSecondWaypointX, fSecondWaypointY, fSecondWaypointZ, GetAngleX(), GetAngleY(), GetAngleZ(), fPathCurveMean, fBellShapeSpeed, fBellShapeMaxRotationSpeed)
   endEvent
 
@@ -274,14 +274,16 @@ endState
 State BellShapeGoingAcross
 
   Event OnTranslationAlmostComplete()
+    ; Empty.
   endEvent
 
   Event OnTranslationComplete()
+    GoToState("BellShapeGoingDown")
+
     if CheckViability()
       return
     endif
 
-    GoToState("BellShapeGoingDown")
     SplineTranslateTo(fBellShapeStartLandingPointX, fBellShapeStartLandingPointY, fBellShapeStartLandingPointZ, fBellShapeTargetAngleX, fBellShapeTargetAngleY, fBellShapeTargetAngleZ, fPathCurveMean, fBellShapeSpeed, fBellShapeMaxRotationSpeed)
   endEvent
 
@@ -290,9 +292,12 @@ endState
 State BellShapeGoingDown
 
   Event OnTranslationAlmostComplete()
+    ; Empty.
   endEvent
 
   Event OnTranslationComplete()
+    GoToState("BellShapeLanding")
+
     DoPathEndStuff()
 
     float fSpeed = fBellShapeSpeed * fLandingSpeedRatio
@@ -301,7 +306,6 @@ State BellShapeGoingDown
       return
     endif
 
-    GoToState("BellShapeLanding")
     TranslateTo(fBellShapeTargetPointX, fBellShapeTargetPointY, fBellShapeTargetPointZ, fBellShapeTargetAngleX, fBellShapeTargetAngleY, fBellShapeTargetAngleZ, fSpeed, fBellShapeMaxRotationSpeed)
   endEvent
 
@@ -310,12 +314,12 @@ endState
 State BellShapeLanding
 
   Event OnTranslationComplete()
-    if CurrentTargetState != ""
+    if CurrentTargetState
       GotoState(CurrentTargetState)
     endif
 
-    BellShapeTarget = none
     CurrentTargetState = ""
+    BellShapeTarget = none
     OnCritterGoalReached()
   endEvent
 
@@ -324,6 +328,13 @@ endState
 State Translation
 
   Event OnTranslationComplete()
+    if CurrentTargetState
+      GotoState(CurrentTargetState)
+    endif
+
+    CurrentTargetState = ""
+    DoPathEndStuff()
+    OnCritterGoalReached()
   endEvent
 
 endState
@@ -331,9 +342,21 @@ endState
 State SplineTranslation
 
   Event OnTranslationAlmostComplete()
+    ; Empty.
   endEvent
 
   Event OnTranslationComplete()
+    GoToState("StraightLineLanding")
+    DoPathEndStuff()
+
+    float fTangentMagnitude = Utility.RandomFloat(fPathCurveMean - fPathCurveVariance, fPathCurveMean + fPathCurveVariance)
+    float fSpeed = fStraightLineSpeed * fLandingSpeedRatio
+
+    if CheckViability()
+      return
+    endif
+
+    SplineTranslateTo(fStraightLineTargetX, fStraightLineTargetY, fStraightLineTargetZ, fStraightLineTargetAngleX, fStraightLineTargetAngleY, fStraightLineTargetAngleZ, fTangentMagnitude, fSpeed, fStraightLineMaxRotationSpeed)
   endEvent
 
 endState
@@ -341,6 +364,12 @@ endState
 State StraightLineLanding
 
   Event OnTranslationComplete()
+    if CurrentTargetState
+      GotoState(CurrentTargetState)
+    endif
+
+    CurrentTargetState = ""
+    OnCritterGoalReached()
   endEvent
 
 endState
@@ -357,11 +386,7 @@ Event OnInit()
 endEvent
 
 Event OnUpdate()
-  DisableAndDelete(true)
-endEvent
-
-Event OnUpdateGameTime()
-  DisableAndDelete(false)
+  DisableAndDelete()
 endEvent
 
 Event OnCellAttach()
@@ -373,7 +398,7 @@ Event OnCellAttach()
 endEvent
 
 Event OnCellDetach()
-  RegisterForSingleUpdateGameTime(0.35)
+  DisableAndDelete(false)
 endEvent
 
 Event OnActivate(ObjectReference akActionRef)
@@ -409,101 +434,12 @@ Event OnTranslationAlmostComplete()
   OnCritterGoalAlmostReached()
 endEvent
 
-Event OnTranslationAlmostComplete()
-  if CurrentMovementState != "BellShapeGoingUp" \
-      && CurrentMovementState != "BellShapeGoingAcross" \
-      && CurrentMovementState != "BellShapeGoingDown" \
-      && CurrentMovementState != "SplineTranslation"
-    OnCritterGoalAlmostReached()
-  endif
-endEvent
-
 Event OnTranslationComplete()
   OnCritterGoalReached()
 endEvent
 
-Event OnTranslationComplete()
-  bCalculating = true
-
-  if CurrentMovementState == "BellShapeGoingUp"
-    CurrentMovementState = "BellShapeGoingAcross"
-
-    float fsecondWaypointPercent = 1.0 - fBellShapedWaypointPercent
-    float fSecondWaypointX = fBellShapeStartX + fBellShapeDeltaX * fsecondWaypointPercent
-    float fSecondWaypointY = fBellShapeStartY + fBellShapeDeltaY * fsecondWaypointPercent
-    float fSecondWaypointZ = fBellShapeStartZ + fBellShapeDeltaZ * fsecondWaypointPercent + fBellShapeHeight
-
-    if CheckViability()
-      return
-    endif
-
-    SplineTranslateTo(fSecondWaypointX, fSecondWaypointY, fSecondWaypointZ, GetAngleX(), GetAngleY(), GetAngleZ(), fPathCurveMean, fBellShapeSpeed, fBellShapeMaxRotationSpeed)
-  elseif CurrentMovementState == "BellShapeGoingAcross"
-    CurrentMovementState = "BellShapeGoingDown"
-
-    if CheckViability()
-      return
-    endif
-
-    SplineTranslateTo(fBellShapeStartLandingPointX, fBellShapeStartLandingPointY, fBellShapeStartLandingPointZ, fBellShapeTargetAngleX, fBellShapeTargetAngleY, fBellShapeTargetAngleZ, fPathCurveMean, fBellShapeSpeed, fBellShapeMaxRotationSpeed)
-  elseif CurrentMovementState == "BellShapeGoingDown"
-    DoPathEndStuff()
-    CurrentMovementState = "BellShapeLanding"
-
-    float fSpeed = fBellShapeSpeed * fLandingSpeedRatio
-
-    if CheckViability()
-      return
-    endif
-
-    TranslateTo(fBellShapeTargetPointX, fBellShapeTargetPointY, fBellShapeTargetPointZ, fBellShapeTargetAngleX, fBellShapeTargetAngleY, fBellShapeTargetAngleZ, fSpeed, fBellShapeMaxRotationSpeed)
-  elseif CurrentMovementState == "BellShapeLanding"
-    if CurrentTargetState != ""
-      GotoState(CurrentTargetState)
-    endif
-
-    CurrentMovementState = "Idle"
-    BellShapeTarget = none
-    CurrentTargetState = ""
-    OnCritterGoalReached()
-  elseif CurrentMovementState == "SplineTranslation"
-    DoPathEndStuff()
-    CurrentMovementState = "StraightLineLanding"
-
-    float fTangentMagnitude = Utility.RandomFloat(fPathCurveMean - fPathCurveVariance, fPathCurveMean + fPathCurveVariance)
-    float fSpeed = fStraightLineSpeed * fLandingSpeedRatio
-
-    if CheckViability()
-      return
-    endif
-
-    SplineTranslateTo(fStraightLineTargetX, fStraightLineTargetY, fStraightLineTargetZ, fStraightLineTargetAngleX, fStraightLineTargetAngleY, fStraightLineTargetAngleZ, fTangentMagnitude, fSpeed, fStraightLineMaxRotationSpeed)
-  elseif CurrentMovementState == "StraightLineLanding"
-    if CurrentTargetState != ""
-      GotoState(CurrentTargetState)
-    endif
-
-    CurrentMovementState = "Idle"
-    CurrentTargetState = ""
-    OnCritterGoalReached()
-  elseif CurrentMovementState == "Translation"
-    DoPathEndStuff()
-
-    if CurrentTargetState != ""
-      GotoState(CurrentTargetState)
-    endif
-
-    CurrentMovementState = "Idle"
-    CurrentTargetState = ""
-    OnCritterGoalReached()
-  else
-    OnCritterGoalReached()
-  endif
-
-  bCalculating = false
-endEvent
-
 Event OnTranslationFailed()
+  GoToState("")
   OnCritterGoalFailed()
 endEvent
 
@@ -527,6 +463,61 @@ endFunction
 
 Function OnCritterGoalFailed()
   RegisterForSingleUpdate(0.15)
+endFunction
+
+Function DoPathStartStuff()
+  ; Empty.
+endFunction
+
+Function DoPathEndStuff()
+  ; Empty.
+endFunction
+
+Function FollowClear()
+  ; Empty.
+endFunction
+
+Function TargetClear()
+  ; Empty.
+endFunction
+
+bool Function FollowSet(ObjectReference akFollowing)
+  if Follower == None && !IsDisabled()
+    Follower = akFollowing
+    return true
+  endif
+
+  return false
+endFunction
+
+Function SetInitialSpawnerProperties(float afRadius, float afHeight, float afDepth, float afMaxPlayerDistance, CritterSpawn arSpawner)
+  fradiusPropVal = afRadius
+  fheightPropVal = afHeight
+  fdepthPropVal = afDepth
+  fmaxPlayerDistPropVal = afMaxPlayerDistance
+  spawnerPropVal = arSpawner
+  bSpawnerVariablesInitialized = true
+  CheckStateAndStart()
+endFunction
+
+Function SetSpawnerProperties()
+  fLeashLength = fradiusPropVal
+  fHeight = fheightPropVal
+  fDepth = fDepthPropVal
+  fMaxPlayerDistance = fmaxPlayerDistPropVal
+  Spawner = spawnerPropVal
+  fSpawnerX = Spawner.X
+  fSpawnerY = Spawner.Y
+  fSpawnerZ = Spawner.Z
+  PlayerRef = Game.GetForm(0x14) as Actor
+endFunction
+
+Function CheckStateAndStart()
+  if bDefaultPropertiesInitialized && bSpawnerVariablesInitialized
+    SetSpawnerProperties()
+    GotoState("KickOffOnStart")
+    RegisterForSingleUpdate(0.0)
+  endif
 endFunction
 
 Function Die()
@@ -565,60 +556,8 @@ Function Die()
   endif
 endFunction
 
-Function SetInitialSpawnerProperties(float afRadius, float afHeight, float afDepth, float afMaxPlayerDistance, CritterSpawn arSpawner)
-  fradiusPropVal = afRadius
-  fheightPropVal = afHeight
-  fdepthPropVal = afDepth
-  fmaxPlayerDistPropVal = afMaxPlayerDistance
-  spawnerPropVal = arSpawner
-  bSpawnerVariablesInitialized = true
-  CheckStateAndStart()
-endFunction
-
-Function SetSpawnerProperties()
-  fLeashLength = fradiusPropVal
-  fHeight = fheightPropVal
-  fDepth = fDepthPropVal
-  fMaxPlayerDistance = fmaxPlayerDistPropVal
-  Spawner = spawnerPropVal
-  fSpawnerX = Spawner.X
-  fSpawnerY = Spawner.Y
-  fSpawnerZ = Spawner.Z
-  PlayerRef = Game.GetForm(0x14) as Actor
-endFunction
-
-Function CheckStateAndStart()
-  if bDefaultPropertiesInitialized && bSpawnerVariablesInitialized
-    SetSpawnerProperties()
-    GotoState("KickOffOnStart")
-    RegisterForSingleUpdate(0.0)
-  endif
-endFunction
-
-bool Function FollowSet(ObjectReference akFollowing)
-  if Follower == None && !IsDisabled()
-    Follower = akFollowing
-    return true
-  endif
-
-  return false
-endFunction
-
-Function FollowClear()
-  ; Empty.
-endFunction
-
-Function TargetClear()
-  ; Empty.
-endFunction
-
 Function DisableAndDelete(bool abFadeOut = true)
   bKilled = true
-
-  if bCalculating && abFadeOut
-    RegisterForSingleUpdateGameTime(0.35)
-    return
-  endif
 
   if bDeleting
     return
@@ -635,7 +574,7 @@ Function DisableAndDelete(bool abFadeOut = true)
   endif
 
   PlayerRef = None
-  CurrentMovementState = "Idle"
+  GoToState("")
 
   if CheckCellAttached(self)
     StopTranslation()
@@ -674,7 +613,6 @@ Function DisableAndDelete(bool abFadeOut = true)
   dummyMarker = none
 
   UnregisterForUpdate()
-  UnregisterForUpdateGameTime()
   Delete()
 endFunction
 
@@ -720,7 +658,6 @@ Function SplineTranslateToRefAtSpeed(ObjectReference arTarget, float afSpeed, fl
 
   SetMotionType(Motion_Keyframed, false)
   DoPathStartStuff()
-  CurrentMovementState = "SplineTranslation"
 
   if PlaceLandingMarker(arTarget, CurrentTargetNode) || PlaceDummyMarker(landingMarker, ApproachNodeName)
     return
@@ -753,8 +690,8 @@ Function SplineTranslateToRefAtSpeed(ObjectReference arTarget, float afSpeed, fl
     return
   endif
 
+  GoToState("SplineTranslation")
   SplineTranslateTo(ftargetX, ftargetY, ftargetZ, fStraightLineTargetAngleX, fStraightLineTargetAngleY, fStraightLineTargetAngleZ, fTangentMagnitude, afSpeed, afMaxRotationSpeed)
-  bCalculating = false
 endFunction
 
 Function SplineTranslateToRefNodeAtSpeed(ObjectReference arTarget, string arNode, float afSpeed, float afMaxRotationSpeed)
@@ -780,7 +717,6 @@ Function TranslateToRefAtSpeed(ObjectReference arTarget, float afSpeed, float af
 
   SetMotionType(Motion_Keyframed, false)
   DoPathStartStuff()
-  CurrentMovementState = "Translation"
 
   if PlaceLandingMarker(arTarget, CurrentTargetNode) || PlaceDummyMarker(landingMarker, ApproachNodeName)
     return
@@ -812,8 +748,8 @@ Function TranslateToRefAtSpeed(ObjectReference arTarget, float afSpeed, float af
     return
   endif
 
+  GoToState("Translation")
   TranslateTo(ftargetX, ftargetY, ftargetZ, fStraightLineTargetAngleX, fStraightLineTargetAngleY, fStraightLineTargetAngleZ, afSpeed, afMaxRotationSpeed)
-  bCalculating = false
 endFunction
 
 Function TranslateToRefNodeAtSpeed(ObjectReference arTarget, string arNode, float afSpeed, float afMaxRotationSpeed)
@@ -839,7 +775,6 @@ Function BellShapeTranslateToRefAtSpeed(ObjectReference arTarget, float afBellHe
 
   SetMotionType(Motion_Keyframed, false)
   DoPathStartStuff()
-  CurrentMovementState = "BellShapeGoingUp"
 
   if PlaceLandingMarker(arTarget, CurrentTargetNode) || PlaceDummyMarker(landingMarker, ApproachNodeName)
     return
@@ -879,8 +814,8 @@ Function BellShapeTranslateToRefAtSpeed(ObjectReference arTarget, float afBellHe
     return
   endif
 
+  GoToState("BellShapeGoingUp")
   SplineTranslateTo(fFirstWaypointX, fFirstWaypointY, fFirstWaypointZ, GetAngleX(), GetAngleY(), GetAngleZ(), fPathCurveMean, fBellShapeSpeed, afMaxRotationSpeed)
-  bCalculating = false
 endFunction
 
 Function BellShapeTranslateToRefNodeAtSpeed(ObjectReference arTarget, string arNode, float afBellHeight, float afSpeed, float afMaxRotationSpeed)
@@ -906,7 +841,6 @@ Function WarpToRefAndGotoState(ObjectReference arTarget, string asState)
 
   MoveTo(landingMarker)
   GotoState(asState)
-  CurrentMovementState = "Idle"
 endFunction
 
 Function WarpToRefNodeAndGotoState(ObjectReference arTarget, string asNode, string asState)
@@ -916,27 +850,18 @@ Function WarpToRefNodeAndGotoState(ObjectReference arTarget, string asNode, stri
 
   MoveTo(landingMarker)
   GotoState(asState)
-  CurrentMovementState = "Idle"
-endFunction
-
-Function DoPathStartStuff()
-  ; Empty.
-endFunction
-
-Function DoPathEndStuff()
-  ; Empty.
 endFunction
 
 Function FlyAroundSpawner(float afMinTravel, float afMaxTravel, float afSpeed, float afMaxRotationSpeed, bool abFlyBelowSpawner = false)
+  if CheckViability()
+    return
+  endif
+
   float fMinHeight = fSpawnerZ
   float fMaxheight = fMinHeight + fLeashLength * 0.5
   float newX = X + Utility.RandomFloat(afMinTravel, afMaxTravel)
   float newY = Y + Utility.RandomFloat(afMinTravel, afMaxTravel)
   float newZ = Z + Utility.RandomFloat(afMinTravel, afMaxTravel)
-
-  if CheckViability()
-    return
-  endif
 
   DoPathStartStuff()
 
@@ -971,7 +896,6 @@ Function FlyAroundSpawner(float afMinTravel, float afMaxTravel, float afSpeed, f
   endif
 
   TranslateTo(newX, newY, newZ, GetAngleX(), GetAngleY(), GetAngleZ(), afSpeed, afMaxRotationSpeed)
-  bCalculating = false
 endFunction
 
 bool Function CheckViability()
@@ -982,29 +906,21 @@ bool Function CheckViability()
     return false
   endif
 
-  bCalculating = false
+  GoToState("")
   DisableAndDelete(PlayerRef && !bKilled)
   return true
 endFunction
 
 bool Function CheckViableDistance()
-  bool bWasCalculating = bCalculating
-  bCalculating = true
-
   if PlayerRef \
       && !bKilled \
       && CheckCellAttached(self) \
       && CheckFor3D(self) \
       && PlayerRef.GetDistance(self) <= fMaxPlayerDistance
-    if bWasCalculating
-      return false
-    else
-      UnregisterForUpdateGameTime()
-      return true
-    endif
+    return true
   endif
 
-  bCalculating = bWasCalculating
+  GoToState("")
   DisableAndDelete(PlayerRef && !bKilled)
   return false
 endFunction
