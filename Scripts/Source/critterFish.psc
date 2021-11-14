@@ -68,7 +68,7 @@ State RandomSwimming
         fspeed = Utility.RandomFloat(fTranslationSpeedMean - fTranslationSpeedVariance, fTranslationSpeedMean + fTranslationSpeedVariance)
       endif
 
-      if Utility.RandomInt(0, 100) < iPercentChanceSchooling
+      if Utility.RandomInt(1, 100) <= iPercentChanceSchooling
         if PickTargetFishForSchooling() && PickRandomPointBehindTargetFish()
           GotoState("Schooling")
           SchoolWithOtherFish(fspeed)
@@ -83,11 +83,8 @@ State RandomSwimming
 
   Event OnCritterGoalAlmostReached()
     fMoving = 0.0
-
-    if PlayerRef
-      bFoundClosestActor = Game.FindClosestActorFromRef(self, fActorDetectionDistance) as bool
-      RegisterForSingleUpdate(0.0)
-    endif
+    bFoundClosestActor = Game.FindClosestActorFromRef(self, fActorDetectionDistance) as bool
+    RegisterForSingleUpdate(0.0)
   EndEvent
 
 endState
@@ -100,7 +97,7 @@ State Schooling
         GotoState("RandomSwimming")
         TargetClear()
         GoToNewPoint(fFleeTranslationSpeed)
-      elseif Utility.RandomInt(0, 100) >= iPercentChanceStopSchooling && TargetFish as CritterFish && TargetFish.fMoving && PickRandomPointBehindTargetFish()
+      elseif Utility.RandomInt(1, 100) > iPercentChanceStopSchooling && TargetFish as CritterFish && TargetFish.fMoving && PickRandomPointBehindTargetFish()
         SchoolWithOtherFish(TargetFish.fMoving)
       else
         GotoState("RandomSwimming")
@@ -138,7 +135,6 @@ endFunction
 
 Function OnStart()
   SetScale(Utility.RandomFloat(fMinScale, fMaxScale))
-  GotoState("RandomSwimming")
   WarpToRandomPoint()
   Enable()
 
@@ -147,6 +143,7 @@ Function OnStart()
   endif
 
   SetMotionType(Motion_Keyframed, false)
+  GotoState("RandomSwimming")
   RegisterForSingleUpdate(0.0)
 endFunction
 
@@ -157,7 +154,7 @@ Function PickRandomPoint()
   fTargetY = fSpawnerY + fLength * Math.Sin(fTargetAngleZ)
 
   if fMinDepth < fDepth
-    fTargetZ = fSpawnerZ - Utility.RandomFloat(fMinDepth, (fDepth - ((flength * (fDepth - fMinDepth)) / fLeashLength)))
+    fTargetZ = fSpawnerZ - Utility.RandomFloat(fMinDepth, fDepth - ((flength * (fDepth - fMinDepth)) / fLeashLength))
   else
     fTargetZ = fSpawnerZ
   endif
