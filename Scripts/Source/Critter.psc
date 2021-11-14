@@ -1,4 +1,5 @@
 ScriptName Critter extends ObjectReference
+{ Base behavior script for critters. }
 
 ;===============================================================================
 ;
@@ -7,80 +8,108 @@ ScriptName Critter extends ObjectReference
 ;===============================================================================
 
 float property fPositionVarianceX = 20.0 auto
-{When picking a destination reference, how much variance in he X coordinate the critter to travel to.}
+{
+  When picking a destination reference, how much variance in he X coordinate the
+  critter to travel to.
+}
 
 float property fPositionVarianceY = 20.0 auto
-{When picking a destination reference, how much variance in he Y coordinate the critter to travel to.}
+{
+  When picking a destination reference, how much variance in he Y coordinate the
+  critter to travel to.
+}
 
 float property fPositionVarianceZMin = 50.0 auto
-{When picking a destination reference, how much variance in he Z coordinate the critter to travel to, lower bound}
+{
+  When picking a destination reference, how much variance in he Z coordinate the
+  critter to travel to, lower bound
+}
 
 float property fPositionVarianceZMax = 100.0 auto
-{When picking a destination reference, how much variance in he Z coordinate the critter to travel to, upper bound}
+{
+  When picking a destination reference, how much variance in he Z coordinate the
+  critter to travel to, upper bound
+}
 
 float property fAngleVarianceZ = 90.0 auto
-{When picking a destination reference, how much variance from the ref's Z angle the critter can end at}
+{
+  When picking a destination reference, how much variance from the ref's Z angle
+  the critter can end at
+}
 
 float property fAngleVarianceX = 20.0 auto
-{When picking a destination reference, how much variance from the ref's X angle the critter can end at}
+{
+  When picking a destination reference, how much variance from the ref's X angle
+  the critter can end at
+}
 
 float property fPathCurveMean = 100.0 auto
-{When moving, how "curvy" the path can be, mean (see associated Variance)}
+{ When moving, how "curvy" the path can be, mean (see associated Variance). }
 
 float property fPathCurveVariance = 200.0 auto
-{When moving, how "curvy" the path can be, variance (see associated Mean)}
+{ When moving, how "curvy" the path can be, variance (see associated Mean). }
 
-; For bell-shaped paths, where along the path to place waypoints
 float property fBellShapedWaypointPercent = 0.2 auto
-{When moving on a bell-shaped path, how far along the path to place the bell waypoint (so that the critter doesn't go straight up, but up and forward)}
+{
+  When moving on a bell-shaped path, how far along the path to place the bell
+  waypoint (so that the critter doesn't go straight up, but up and forward)
+}
 
-; Animation events to be sent to the graph, and associated delays
 string property PathStartGraphEvent = "" auto
-{Animation event to send when starting a path}
+{ Animation event to send when starting a path. }
 
 float property fPathStartAnimDelay = 1.0 auto
-{Duration of the path start animation (delay used before the critter actually moves)}
+{
+  Duration of the path start animation (delay used before the critter actually
+  moves)
+}
 
 string property PathEndGraphEvent = "" auto
-{Animation event to send when ending a path}
+{ Animation event to send when ending a path. }
 
 float property fPathEndAnimDelay = 1.0 auto
-{Duration of the path end animation (delay used before the critter returns path complete)}
+{
+  Duration of the path end animation (delay used before the critter returns path
+  complete)
+}
 
-; properties relevant to collection items
 Ingredient property lootable auto
-{ingredient gathered from this critter}
+{ Ingredient gathered from this critter. }
 
 FormList property nonIngredientLootable auto
-{Optional: If our loot item is not an ingredient, use this instead.}
+{ Optional: If our loot item is not an ingredient, use this instead. }
 
 FormList property fakeCorpse auto
-{Optional: If we want to leave a fake "Corpse" behind, point to it here.}
+{ Optional: If we want to leave a fake "Corpse" behind, point to it here. }
 
 bool property bPushOnDeath = false auto
-{apply a small push on death to add english to ingredients?  Default: false}
+{ Apply a small push on death to add english to ingredients?  Default: false. }
 
 Explosion property deathPush auto
-{a small explosion force to propel wings on death}
+{ A small explosion force to propel wings on death. }
 
 int property lootableCount = 1 auto
-{How many lootables do I drop on Death? Default: 1}
+{ How many lootables do I drop on Death? Default: 1. }
 
 bool property bIncrementsWingPluckStat = false auto
-{do I count towards the wings plucked misc stat?  will be false for majority}
+{ Do I count towards the wings plucked misc stat?  will be false for majority. }
 
-; properties relevant to landing behavior
 Static property LandingMarkerForm auto
-{What landing marker to use to compute offsets from landing position}
+{ What landing marker to use to compute offsets from landing position. }
 
 float property fLandingSpeedRatio = 0.33 auto
-{The speed percentage to use when landing, Default = 0.33 (or 33% of flight speed)}
+{
+  The speed percentage to use when landing, Default = 0.33 (or 33% of flight
+  speed)
+}
 
 string property ApproachNodeName = "ApproachSmall01" auto
-{The name of the approach node in the landing marker, Default=ApproachSmall01}
+{
+  The name of the approach node in the landing marker, Default=ApproachSmall01.
+}
 
 bool property reserved auto hidden
-{should this object be invalidated for searches?}
+{ Whether this object should be invalidated for searches. }
 
 ;===============================================================================
 ;
@@ -89,46 +118,48 @@ bool property reserved auto hidden
 ;===============================================================================
 
 ObjectReference property hunter auto hidden
-{if being hunted, by whom?}
+{ The hunter, if being hunted. }
 
 float property fLeashLength auto hidden
-{ The distance from the spawner this critter can be }
+{ The distance from the spawner this critter can be. }
 
 float property fMaxPlayerDistance auto hidden
-{ The distance from the player this critter can be }
+{ The distance from the player this critter can be. }
 
 float property fHeight auto hidden
 {
   The Height above the spawner that critters be move to (when applicable:
-  dragonfly)
+  dragonfly).
 }
 
 float property fDepth auto hidden
-{ The Depth below the spawner that critters be move to (when applicable: fish) }
+{
+  The Depth below the spawner that critters be move to (when applicable: fish).
+}
 
 CritterSpawn property Spawner auto hidden
-{ The spawner that owns this critter }
+{ The spawner that owns this critter. }
 
 bool property bCritterDebug = false auto hidden
-{For debugging only.}
+{ For debugging only. }
 
 Actor property PlayerRef auto hidden
-{set by SetSpawnerProperties, cleared by DisableAndDelete}
+{ Set by SetSpawnerProperties, cleared by DisableAndDelete. }
 
 ObjectReference property Follower auto hidden
-{if being followed, by whom?}
+{ The follower, if being followed. }
 
 float property fSpawnerX auto hidden
-{set by SetSpawnerProperties}
+{ set by SetSpawnerProperties. }
 
 float property fSpawnerY auto hidden
-{set by SetSpawnerProperties}
+{ set by SetSpawnerProperties. }
 
 float property fSpawnerZ auto hidden
-{set by SetSpawnerProperties}
+{ set by SetSpawnerProperties. }
 
 bool property bCalculating = false auto hidden
-{ don't do DisableAndDelete() during calculations }
+{ Deprecated - do not use. }
 
 ;===============================================================================
 ;
@@ -136,33 +167,15 @@ bool property bCalculating = false auto hidden
 ;
 ;===============================================================================
 
-bool bDeleting = false
-
-bool bKilled = false
-
-bool bDefaultPropertiesInitialized = false
-
-bool bSpawnerVariablesInitialized = false
-
-bool bfirstOnStart = true
-
 ObjectReference landingMarker
 
 ObjectReference dummyMarker
 
-float fradiusPropVal
-
-float fmaxPlayerDistPropVal
-
-float fheightPropVal
-
-float fdepthPropVal
-
-CritterSpawn spawnerPropVal
-
 string CurrentTargetState
 
 string CurrentTargetNode
+
+bool bDisabled = false
 
 ;-------------------------------------------------------------------------------
 ; B-Spline translation.
@@ -232,9 +245,139 @@ float fStraightLineMaxRotationSpeed
 ;
 ;===============================================================================
 
-State KickOffOnStart
+State Deleted
 
   Event OnUpdate()
+    { Override. }
+    Debug.Trace(GetState() + " - OnUpdate - " + Spawner + " - " + self)
+  endEvent
+
+  Event OnCellDetach()
+    { Override. }
+    Debug.Trace(GetState() + " - OnCellDetach - " + Spawner + " - " + self)
+  endEvent
+
+  Event OnUnload()
+    { Override. }
+    Debug.Trace(GetState() + " - OnUnload - " + Spawner + " - " + self)
+  endEvent
+
+  Event OnActivate(ObjectReference akActionRef)
+    { Override. }
+  endEvent
+
+  Function Die()
+    { Override. }
+  endFunction
+
+  bool Function CheckViability()
+    { Override. }
+    Debug.Trace(GetState() + " - CheckViability (unviable) - " + Spawner + " - " + self)
+    return true
+  endFunction
+
+  bool Function CheckViableDistance()
+    { Override. }
+    return false
+  endFunction
+
+  Function RegisterForSingleUpdate(float afInterval)
+    { Override. }
+    Debug.Trace(GetState() + " - RegisterForSingleUpdate - " + Spawner + " - " + self)
+  endFunction
+
+endState
+
+State Deleting
+
+  Event OnBeginState()
+    Debug.Trace(GetState() + " - OnBeginState - " + Spawner + " - " + self)
+    RegisterForSingleUpdate(1.0)
+  endEvent
+
+  Event OnUpdate()
+    { Override. }
+    Debug.Trace(GetState() + " - OnUpdate - " + Spawner + " - " + self)
+    GoToState("Deleted")
+    Utility.Wait(1.0)
+    TargetClear()
+
+    if Follower
+      Critter FollowedBy = Follower as Critter
+
+      if FollowedBy
+        Utility.Wait(2.0)
+        FollowedBy.FollowClear()
+      endif
+    endif
+
+    if landingMarker && !bDisabled
+      landingMarker.Delete()
+    endif
+
+    if dummyMarker && !bDisabled
+      dummyMarker.Delete()
+    endif
+
+    Spawner = none
+    BellShapeTarget = none
+    Follower = none
+    landingMarker = none
+    dummyMarker = none
+    PlayerRef = None
+    UnregisterForUpdate()
+    UnregisterForUpdateGameTime()
+    Delete()
+  endEvent
+
+  Event OnCellDetach()
+    { Override. }
+    Debug.Trace(GetState() + " - OnCellDetach - " + Spawner + " - " + self)
+  endEvent
+
+  Event OnUnload()
+    { Override. }
+    Debug.Trace(GetState() + " - OnUnload - " + Spawner + " - " + self)
+  endEvent
+
+  Event OnActivate(ObjectReference akActionRef)
+    { Override. }
+  endEvent
+
+  Event OnTranslationAlmostComplete()
+    { Override. }
+  endEvent
+
+  Event OnTranslationComplete()
+    { Override. }
+  endEvent
+
+  Event OnTranslationFailed()
+    { Override. }
+  endEvent
+
+  Function Die()
+    { Override. }
+  endFunction
+
+  bool Function CheckViability()
+    { Override. }
+    Debug.Trace(GetState() + " - CheckViability (unviable) - " + Spawner + " - " + self)
+    return true
+  endFunction
+
+  bool Function CheckViableDistance()
+    { Override. }
+    return false
+  endFunction
+
+endState
+
+State Initialized
+
+  Event OnUpdate()
+    { Override. }
+    Debug.Trace(GetState() + " - OnUpdate - " + Spawner + " - " + self)
     GotoState("")
     landingMarker = PlaceAtMe(LandingMarkerForm)
     dummyMarker = PlaceAtMe(LandingMarkerForm)
@@ -251,10 +394,11 @@ endState
 State BellShapeGoingUp
 
   Event OnTranslationAlmostComplete()
-    ; Empty.
+    { Override. }
   endEvent
 
   Event OnTranslationComplete()
+    { Override. }
     GoToState("BellShapeGoingAcross")
 
     float fsecondWaypointPercent = 1.0 - fBellShapedWaypointPercent
@@ -274,10 +418,11 @@ endState
 State BellShapeGoingAcross
 
   Event OnTranslationAlmostComplete()
-    ; Empty.
+    { Override. }
   endEvent
 
   Event OnTranslationComplete()
+    { Override. }
     GoToState("BellShapeGoingDown")
 
     if CheckViability()
@@ -292,10 +437,11 @@ endState
 State BellShapeGoingDown
 
   Event OnTranslationAlmostComplete()
-    ; Empty.
+    { Override. }
   endEvent
 
   Event OnTranslationComplete()
+    { Override. }
     GoToState("BellShapeLanding")
 
     DoPathEndStuff()
@@ -314,6 +460,7 @@ endState
 State BellShapeLanding
 
   Event OnTranslationComplete()
+    { Override. }
     if CurrentTargetState
       GotoState(CurrentTargetState)
     endif
@@ -328,6 +475,7 @@ endState
 State Translation
 
   Event OnTranslationComplete()
+    { Override. }
     if CurrentTargetState
       GotoState(CurrentTargetState)
     endif
@@ -342,10 +490,11 @@ endState
 State SplineTranslation
 
   Event OnTranslationAlmostComplete()
-    ; Empty.
+    { Override. }
   endEvent
 
   Event OnTranslationComplete()
+    { Override. }
     GoToState("StraightLineLanding")
     DoPathEndStuff()
 
@@ -364,6 +513,7 @@ endState
 State StraightLineLanding
 
   Event OnTranslationComplete()
+    { Override. }
     if CurrentTargetState
       GotoState(CurrentTargetState)
     endif
@@ -380,53 +530,53 @@ endState
 ;
 ;===============================================================================
 
-Event OnInit()
-  bDefaultPropertiesInitialized = true
-  CheckStateAndStart()
-endEvent
-
 Event OnUpdate()
+  Debug.Trace(GetState() + " - OnUpdate - " + Spawner + " - " + self)
   DisableAndDelete()
 endEvent
 
 Event OnCellAttach()
-  RegisterForSingleUpdate(1.0)
-
-  if !IsDeleted() && !IsDisabled()
-    StopTranslation()
-  endif
+  Debug.Trace(GetState() + " - OnCellAttach - " + Spawner + " - " + self)
+  DisableAndDelete(false)
 endEvent
 
 Event OnCellDetach()
+  Debug.Trace(GetState() + " - OnCellDetach - " + Spawner + " - " + self)
+  DisableAndDelete(false)
+endEvent
+
+Event OnUnload()
+  Debug.Trace(GetState() + " - OnUnload - " + Spawner + " - " + self)
   DisableAndDelete(false)
 endEvent
 
 Event OnActivate(ObjectReference akActionRef)
-  if !bKilled
-    DisableAndDelete(false)
+  Debug.Trace(GetState() + " - OnActivate - " + Spawner + " - " + self)
+  DisableAndDelete(false)
 
-    if nonIngredientLootable
-      int iLootableIndex = NonIngredientLootable.GetSize()
+  if nonIngredientLootable
+    int iLootableIndex = NonIngredientLootable.GetSize()
 
-      while iLootableIndex > 0
-        iLootableIndex -= 1
-        akActionRef.AddItem(NonIngredientLootable.GetAt(iLootableIndex), lootableCount)
-      endWhile
-    else
-      akActionRef.AddItem(lootable, lootableCount)
-    endif
+    while iLootableIndex > 0
+      iLootableIndex -= 1
+      akActionRef.AddItem(NonIngredientLootable.GetAt(iLootableIndex), lootableCount)
+    endWhile
+  else
+    akActionRef.AddItem(lootable, lootableCount)
+  endif
 
-    if bIncrementsWingPluckStat
-      Game.IncrementStat("Wings Plucked", lootableCount)
-    endif
+  if bIncrementsWingPluckStat
+    Game.IncrementStat("Wings Plucked", lootableCount)
   endif
 endEvent
 
 Event OnHit(ObjectReference akAggressor, Form akWeapon, Projectile akProjectile, bool abPowerAttack, bool abSneakAttack, bool abBashAttack, bool abHitBlocked)
+  Debug.Trace(GetState() + " - OnHit - " + Spawner + " - " + self)
   Die()
 endEvent
 
 Event OnMagicEffectApply(ObjectReference akCaster, MagicEffect akEffect)
+  Debug.Trace(GetState() + " - OnMagicEffectApply - " + Spawner + " - " + self)
   Die()
 EndEvent
 
@@ -439,7 +589,6 @@ Event OnTranslationComplete()
 endEvent
 
 Event OnTranslationFailed()
-  GoToState("")
   OnCritterGoalFailed()
 endEvent
 
@@ -462,7 +611,7 @@ Function OnCritterGoalReached()
 endFunction
 
 Function OnCritterGoalFailed()
-  RegisterForSingleUpdate(0.15)
+  RegisterForSingleUpdate(0.0)
 endFunction
 
 Function DoPathStartStuff()
@@ -482,7 +631,7 @@ Function TargetClear()
 endFunction
 
 bool Function FollowSet(ObjectReference akFollowing)
-  if Follower == None && !IsDisabled()
+  if !Follower && !IsDisabled()
     Follower = akFollowing
     return true
   endif
@@ -491,81 +640,61 @@ bool Function FollowSet(ObjectReference akFollowing)
 endFunction
 
 Function SetInitialSpawnerProperties(float afRadius, float afHeight, float afDepth, float afMaxPlayerDistance, CritterSpawn arSpawner)
-  fradiusPropVal = afRadius
-  fheightPropVal = afHeight
-  fdepthPropVal = afDepth
-  fmaxPlayerDistPropVal = afMaxPlayerDistance
-  spawnerPropVal = arSpawner
-  bSpawnerVariablesInitialized = true
-  CheckStateAndStart()
-endFunction
-
-Function SetSpawnerProperties()
-  fLeashLength = fradiusPropVal
-  fHeight = fheightPropVal
-  fDepth = fDepthPropVal
-  fMaxPlayerDistance = fmaxPlayerDistPropVal
-  Spawner = spawnerPropVal
+  fLeashLength = afRadius
+  fHeight = afHeight
+  fDepth = afDepth
+  fMaxPlayerDistance = afMaxPlayerDistance
+  Spawner = arSpawner
   fSpawnerX = Spawner.X
   fSpawnerY = Spawner.Y
   fSpawnerZ = Spawner.Z
   PlayerRef = Game.GetForm(0x14) as Actor
-endFunction
-
-Function CheckStateAndStart()
-  if bDefaultPropertiesInitialized && bSpawnerVariablesInitialized
-    SetSpawnerProperties()
-    GotoState("KickOffOnStart")
-    RegisterForSingleUpdate(0.0)
-  endif
+  GotoState("Initialized")
+  RegisterForSingleUpdate(0.0)
 endFunction
 
 Function Die()
-  if !bKilled
-    ObjectReference ItemDrop
-    int iLootableIndex = lootableCount
+  DisableAndDelete(false)
 
-    DisableAndDelete(false)
+  ObjectReference ItemDrop = none
+  int iLootableIndex = lootableCount
 
-    while iLootableIndex > 0
-      iLootableIndex -= 1
+  while iLootableIndex > 0
+    iLootableIndex -= 1
 
-      if fakeCorpse
-        int iCorpseIndex = fakeCorpse.GetSize()
+    if fakeCorpse
+      int iCorpseIndex = fakeCorpse.GetSize()
 
-        while iCorpseIndex > 0
-          iCorpseIndex -= 1
-          ItemDrop = PlaceAtMe(fakeCorpse.GetAt(iCorpseIndex), 1)
-        endWhile
-      else
-        ItemDrop = PlaceAtMe(lootable, 1)
-      endif
-
-      float Width = GetWidth()
-      float Height = GetHeight()
-      float afXOffset = Utility.RandomFloat(Width, Width * 2.0)
-      float afYOffset = Utility.RandomFloat(Width, Width * 2.0)
-      float afZOffset = Utility.RandomFloat(Height, Height * 2.0) * -1.0
-
-      ItemDrop.MoveTo(ItemDrop, afXOffset, afYOffset, afZOffset, false)
-    endWhile
-
-    if bPushOnDeath
-      PlaceAtMe(deathPush)
+      while iCorpseIndex > 0
+        iCorpseIndex -= 1
+        ItemDrop = PlaceAtMe(fakeCorpse.GetAt(iCorpseIndex), 1)
+      endWhile
+    else
+      ItemDrop = PlaceAtMe(lootable, 1)
     endif
+
+    float Width = GetWidth()
+    float Height = GetHeight()
+    float afXOffset = Utility.RandomFloat(Width, Width * 2.0)
+    float afYOffset = Utility.RandomFloat(Width, Width * 2.0)
+    float afZOffset = Utility.RandomFloat(Height, Height * 2.0) * -1.0
+
+    ItemDrop.MoveTo(ItemDrop, afXOffset, afYOffset, afZOffset, false)
+  endWhile
+
+  if bPushOnDeath
+    PlaceAtMe(deathPush)
   endif
 endFunction
 
 Function DisableAndDelete(bool abFadeOut = true)
-  bKilled = true
+  Debug.Trace(GetState() + " - DisableAndDelete - " + Spawner + " - " + self)
+  GoToState("Deleting")
+  bDisabled = IsDisabled()
 
-  if bDeleting
-    return
+  if Spawner && !bDisabled
+    Spawner.OnCritterDied()
   endif
-
-  bDeleting = true
-
-  bool bNotDisabled = !IsDisabled()
 
   if abFadeOut
     Disable(true)
@@ -573,82 +702,42 @@ Function DisableAndDelete(bool abFadeOut = true)
     DisableNoWait()
   endif
 
-  PlayerRef = None
-  GoToState("")
-
   if CheckCellAttached(self)
     StopTranslation()
   endif
-
-  Utility.Wait(1.0)
-  TargetClear()
-
-  if Follower
-    Utility.Wait(2.0)
-    Critter FollowedBy = Follower as Critter
-
-    if FollowedBy
-      FollowedBy.FollowClear()
-    endif
-  endif
-
-  Follower = none
-
-  if Spawner && bNotDisabled
-    Spawner.OnCritterDied()
-  endif
-
-  Spawner = none
-
-  if landingMarker && bNotDisabled
-    landingMarker.Delete()
-  endif
-
-  landingMarker = none
-
-  if dummyMarker && bNotDisabled
-    dummyMarker.Delete()
-  endif
-
-  dummyMarker = none
-
-  UnregisterForUpdate()
-  Delete()
 endFunction
 
 bool Function PlaceLandingMarker(ObjectReference arTarget, string asTargetNode)
-  if PlayerRef && CheckFor3D(landingMarker) && CheckFor3D(arTarget)
-    if asTargetNode == ""
-      float fPositionX = arTarget.X + Utility.RandomFloat(fPositionVarianceX * -1.0, fPositionVarianceX)
-      float fPositionY = arTarget.Y + Utility.RandomFloat(fPositionVarianceY * -1.0, fPositionVarianceY)
-      float fPositionZ = arTarget.Z + Utility.RandomFloat(fPositionVarianceZMin, fPositionVarianceZMax)
-
-      landingMarker.SetPosition(fPositionX, fPositionY, fPositionZ)
-
-      float fAngleX = arTarget.GetAngleX() + Utility.RandomFloat(fAngleVarianceX * -1.0, fAngleVarianceX)
-      float fAngleY = arTarget.GetAngleY()
-      float fAngleZ = arTarget.GetAngleZ() + Utility.RandomFloat(fAngleVarianceZ * -1.0, fAngleVarianceZ)
-
-      landingMarker.SetAngle(fAngleX, fAngleY, fAngleZ)
-    else
-      landingMarker.MoveToNode(arTarget, asTargetNode)
-    endif
-
-    return false
+  if !CheckFor3D(landingMarker) || !CheckFor3D(arTarget)
+    return true
   endif
 
-  DisableAndDelete(false)
-  return true
+  if asTargetNode == ""
+    float fPositionX = arTarget.X + Utility.RandomFloat(fPositionVarianceX * -1.0, fPositionVarianceX)
+    float fPositionY = arTarget.Y + Utility.RandomFloat(fPositionVarianceY * -1.0, fPositionVarianceY)
+    float fPositionZ = arTarget.Z + Utility.RandomFloat(fPositionVarianceZMin, fPositionVarianceZMax)
+
+    landingMarker.SetPosition(fPositionX, fPositionY, fPositionZ)
+
+    float fAngleX = arTarget.GetAngleX() + Utility.RandomFloat(fAngleVarianceX * -1.0, fAngleVarianceX)
+    float fAngleY = arTarget.GetAngleY()
+    float fAngleZ = arTarget.GetAngleZ() + Utility.RandomFloat(fAngleVarianceZ * -1.0, fAngleVarianceZ)
+
+    landingMarker.SetAngle(fAngleX, fAngleY, fAngleZ)
+  else
+    landingMarker.MoveToNode(arTarget, asTargetNode)
+  endif
+
+  return false
 endFunction
 
 bool Function PlaceDummyMarker(ObjectReference arTarget, string asTargetNode)
-  if PlayerRef && CheckFor3D(dummyMarker) && CheckFor3D(arTarget)
-    dummyMarker.MoveToNode(arTarget, asTargetNode)
-    return false
+  if !CheckFor3D(dummyMarker) || !CheckFor3D(arTarget)
+    return true
   endif
 
-  DisableAndDelete(false)
-  return true
+  dummyMarker.MoveToNode(arTarget, asTargetNode)
+  return false
 endFunction
 
 Function SplineTranslateToRefAtSpeed(ObjectReference arTarget, float afSpeed, float afMaxRotationSpeed)
@@ -660,10 +749,11 @@ Function SplineTranslateToRefAtSpeed(ObjectReference arTarget, float afSpeed, fl
   DoPathStartStuff()
 
   if PlaceLandingMarker(arTarget, CurrentTargetNode) || PlaceDummyMarker(landingMarker, ApproachNodeName)
+    DisableAndDelete(false)
     return
   endif
 
-  if !PlayerRef || !CheckFor3D(dummyMarker)
+  if !CheckFor3D(dummyMarker)
     DisableAndDelete(false)
     return
   endif
@@ -719,10 +809,11 @@ Function TranslateToRefAtSpeed(ObjectReference arTarget, float afSpeed, float af
   DoPathStartStuff()
 
   if PlaceLandingMarker(arTarget, CurrentTargetNode) || PlaceDummyMarker(landingMarker, ApproachNodeName)
+    DisableAndDelete(false)
     return
   endif
 
-  if !PlayerRef || !CheckFor3D(dummyMarker)
+  if !CheckFor3D(dummyMarker)
     DisableAndDelete(false)
 
     return
@@ -777,10 +868,11 @@ Function BellShapeTranslateToRefAtSpeed(ObjectReference arTarget, float afBellHe
   DoPathStartStuff()
 
   if PlaceLandingMarker(arTarget, CurrentTargetNode) || PlaceDummyMarker(landingMarker, ApproachNodeName)
+    DisableAndDelete(false)
     return
   endif
 
-  if !PlayerRef || !CheckFor3D(dummyMarker)
+  if !CheckFor3D(dummyMarker)
     DisableAndDelete(false)
     return
   endif
@@ -836,6 +928,7 @@ endFunction
 
 Function WarpToRefAndGotoState(ObjectReference arTarget, string asState)
   if PlaceLandingMarker(arTarget, "")
+    DisableAndDelete(false)
     return
   endif
 
@@ -845,6 +938,7 @@ endFunction
 
 Function WarpToRefNodeAndGotoState(ObjectReference arTarget, string asNode, string asState)
   if PlaceLandingMarker(arTarget, asNode)
+    DisableAndDelete(false)
     return
   endif
 
@@ -853,15 +947,15 @@ Function WarpToRefNodeAndGotoState(ObjectReference arTarget, string asNode, stri
 endFunction
 
 Function FlyAroundSpawner(float afMinTravel, float afMaxTravel, float afSpeed, float afMaxRotationSpeed, bool abFlyBelowSpawner = false)
-  if CheckViability()
-    return
-  endif
-
   float fMinHeight = fSpawnerZ
   float fMaxheight = fMinHeight + fLeashLength * 0.5
   float newX = X + Utility.RandomFloat(afMinTravel, afMaxTravel)
   float newY = Y + Utility.RandomFloat(afMinTravel, afMaxTravel)
   float newZ = Z + Utility.RandomFloat(afMinTravel, afMaxTravel)
+
+  if CheckViability()
+    return
+  endif
 
   DoPathStartStuff()
 
@@ -899,29 +993,24 @@ Function FlyAroundSpawner(float afMinTravel, float afMaxTravel, float afSpeed, f
 endFunction
 
 bool Function CheckViability()
-  if PlayerRef \
-      && !bKilled \
-      && CheckCellAttached(self) \
-      && CheckFor3D(self)
+  if CheckCellAttached(self) && CheckFor3D(self)
+    Debug.Trace(GetState() + " - CheckViability (viable) - " + Spawner + " - " + self)
     return false
   endif
 
-  GoToState("")
-  DisableAndDelete(PlayerRef && !bKilled)
+  Debug.Trace(GetState() + " - CheckViability (unviable) - " + Spawner + " - " + self)
+  DisableAndDelete()
   return true
 endFunction
 
 bool Function CheckViableDistance()
-  if PlayerRef \
-      && !bKilled \
-      && CheckCellAttached(self) \
+  if CheckCellAttached(self) \
       && CheckFor3D(self) \
       && PlayerRef.GetDistance(self) <= fMaxPlayerDistance
     return true
   endif
 
-  GoToState("")
-  DisableAndDelete(PlayerRef && !bKilled)
+  DisableAndDelete()
   return false
 endFunction
 
@@ -937,11 +1026,11 @@ bool Function CheckFor3D(ObjectReference akObject)
   float fBaseWaitingTime = 0.01
   float fTimeWaited = 0.0
 
-  while akObject && bWaiting && !bLoaded
+  while bWaiting && !bLoaded
     Utility.Wait(fBaseWaitingTime)
     fTimeWaited += fBaseWaitingTime
     bWaiting = fTimeWaited < fMaxWaitingTime
-    bLoaded = akObject && akObject.Is3DLoaded()
+    bLoaded = akObject.Is3DLoaded()
   endWhile
 
   return bLoaded

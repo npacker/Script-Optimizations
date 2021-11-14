@@ -1,5 +1,5 @@
-ScriptName CritterMoth extends Critter
-{  Behavior script for moths and butterflies. }
+ScriptName Firefly extends Critter
+{ Behavior script for firelies, bees, and other hovering insects. }
 
 ;===============================================================================
 ;
@@ -8,58 +8,52 @@ ScriptName CritterMoth extends Critter
 ;===============================================================================
 
 FormList property PlantTypes auto
-{ The list of plant types this moth can be attracted to}
+{ The list of plant types this firefly can be attracted to}
 
-float property fTimeAtPlantMin = 5.0 auto
-{The Minimum time a Moth stays at a plant}
+float Property fTimeAtPlantMin = 5.0 auto
+{The Minimum time a Firefly stays at a plant}
 
-float property fTimeAtPlantMax = 10.0 auto
-{The Maximum time a Moth stays at a plant}
+float Property fTimeAtPlantMax = 10.0 auto
+{The Maximum time a Firefly stays at a plant}
 
-float property fActorDetectionDistance = 300.0 auto
+float Property fActorDetectionDistance = 300.0 auto
 {The Distance at which an actor will trigger a flee behavior}
 
-float property fTranslationSpeedMean = 150.0 auto
+float Property fTranslationSpeedMean = 50.0 auto
 {The movement speed when going from plant to plant, mean value}
 
-float property fTranslationSpeedVariance = 50.0 auto
+float Property fTranslationSpeedVariance = 25.0 auto
 {The movement speed when going from plant to plant, variance}
 
-float property fFleeTranslationSpeed = 300.0 auto
+float Property fFleeTranslationSpeed = 100.0 auto
 {The movement speed when fleeing from the player}
 
-float property fFlockPlayerXYDist = 100.0 auto
+float Property fFlockPlayerXYDist = 100.0 auto
 {When flocking the player, the XY random value to add to its location}
 
-float property fFlockPlayerZDistMin = 50.0 auto
+float Property fFlockPlayerZDistMin = 50.0 auto
 {When flocking the player, the min Z value to add to its location}
 
-float property fFlockPlayerZDistMax = 200.0 auto
+float Property fFlockPlayerZDistMax = 200.0 auto
 {When flocking the player, the max Z value to add to its location}
 
-float property fFlockTranslationSpeed = 300.0 auto
+float Property fFlockTranslationSpeed = 300.0 auto
 {When flocking the player, the speed at which to move}
 
-float property fMinScale = 0.5 auto
-{Minimum initial scale of the Moth}
+float Property fMinScale = 0.3 auto
+{Minimum initial scale of the Firefly}
 
-float property fMaxScale = 1.2 auto
-{Maximum initial scale of the Moth}
+float Property fMaxScale = 0.4 auto
+{Maximum initial scale of the Firefly}
 
 float property fMinTravel = 64.0 auto
-{Minimum distance a wandering moth/butterfly will travel}
+{Minimum distance a wandering Firefly will travel}
 
 float property fMaxTravel = 512.0 auto
-{Maximum distance a wandering moth/butterfly will travel}
+{Maximum distance a wandering Firefly will travel}
 
 float property fMaxRotationSpeed = 90.0 auto
 {Max rotation speed while mocing, default = 90 deg/s}
-
-float property fBellShapePathHeight = 150.0 auto
-{The height of the bell shaped path}
-
-string property LandingMarkerPrefix = "LandingSmall0" auto
-{Prefix of landing markers on plants, default="LandingSmall0"}
 
 ;===============================================================================
 ;
@@ -73,6 +67,8 @@ float fWaitingToDieTimer = 10.0
 
 bool bFoundClosestActor = false
 
+int iGoToNewPlantChance = 20
+
 ;===============================================================================
 ;
 ; STATES
@@ -82,39 +78,63 @@ bool bFoundClosestActor = false
 State AtPlant
 
   Event OnUpdate()
-    Debug.Trace(GetState() + " - OnUpdate - " + Spawner + " - " + self)
     if CheckViableDistance()
       if Spawner && Spawner.IsActiveTime()
         if bFoundClosestActor
           GoToNewPlant(fFleeTranslationSpeed)
-        else
+        elseif Utility.RandomInt(1, 100) <= iGoToNewPlantChance
           GoToNewPlant(Utility.RandomFloat(fTranslationSpeedMean - fTranslationSpeedVariance, fTranslationSpeedMean + fTranslationSpeedVariance))
-        endif
+        else
+          HoverCloseBy()
+        endIf
       else
-        BellShapeTranslateToRefAtSpeedAndGotoState(Spawner, fBellShapePathHeight, fTranslationSpeedMean, fMaxRotationSpeed, "KillForTheNight")
-      endif
-    endif
+        SplineTranslateToRefAtSpeedAndGotoState(Spawner, fTranslationSpeedMean, fMaxRotationSpeed, "KillForTheNight")
+      endIf
+    endIf
   endEvent
 
-  Function OnCritterGoalReached()
-    Debug.Trace(GetState() + " - OnCritterGoalReached - " +  Spawner + " - " + self)
+  Event OnCritterGoalReached()
     bFoundClosestActor = Game.FindClosestActorFromRef(self, fActorDetectionDistance) as bool
 
     if bFoundClosestActor
       RegisterForSingleUpdate(0.0)
     else
       RegisterForSingleUpdate(Utility.RandomFloat(fTimeAtPlantMin, fTimeAtPlantMax))
-    endif
-  endFunction
+    endIf
+  EndEvent
+
+endState
+
+State Hovering
+
+  Event OnUpdate()
+    if CheckViableDistance()
+      if bFoundClosestActor
+        GoToNewPlant(fFleeTranslationSpeed)
+      elseif Utility.RandomInt(1, 100) <= iGoToNewPlantChance
+        GoToNewPlant(Utility.RandomFloat(fTranslationSpeedMean - fTranslationSpeedVariance, fTranslationSpeedMean + fTranslationSpeedVariance))
+      else
+        HoverCloseBy()
+      endIf
+    endIf
+  EndEvent
+
+  Event OnCritterGoalReached()
+    bFoundClosestActor = Game.FindClosestActorFromRef(self, fActorDetectionDistance) as bool
+    RegisterForSingleUpdate(0.0)
+  EndEvent
 
 endState
 
 State KillForTheNight
 
-  Function OnCritterGoalReached()
-    Debug.Trace(GetState() + " - OnCritterGoalReached - " +  Spawner + " - " + self)
+  Event OnUpdate()
+    DisableAndDelete()
+  endEvent
+
+  Event OnCritterGoalReached()
     RegisterForSingleUpdate(0.0)
-  endFunction
+  EndEvent
 
 endState
 
@@ -125,7 +145,6 @@ endState
 ;===============================================================================
 
 Function OnStart()
-  Debug.Trace(GetState() + " - OnStart - " +  Spawner + " - " + self)
   SetScale(Utility.RandomFloat(fMinScale, fMaxScale))
   WarpToNewPlant()
   Enable()
@@ -142,8 +161,27 @@ Function TargetClear()
   currentPlant = none
 endFunction
 
+Function HoverCloseBy()
+  float ftargetX = X + Utility.RandomFloat(-20.0, 20.0)
+  float ftargetY = Y + Utility.RandomFloat(-20.0, 20.0)
+  float ftargetZ = Z + Utility.RandomFloat(-20.0, 20.0)
+  float ftargetAngleZ = GetAngleZ() + Utility.RandomFloat(-20.0, 20.0)
+  float ftargetAngleX = Utility.RandomFloat(-5.0, 5.0)
+
+  if currentPlant && CheckFor3D(currentPlant) && fTargetZ < currentPlant.Z
+    fTargetz = currentPlant.Z
+  endif
+
+  GotoState("Hovering")
+
+  if CheckViability()
+    return
+  endIf
+
+  TranslateTo(ftargetX, ftargetY, ftargetZ, ftargetAngleX, 0.0, ftargetAngleZ, Utility.RandomFloat(10, 30), fMaxRotationSpeed)
+endFunction
+
 ObjectReference Function PickNextPlant()
-  Debug.Trace(GetState() + " - PickNextPlant - " +  Spawner + " - " + self)
   int iMaxTries = 10
 
   while iMaxTries > 0
@@ -157,66 +195,33 @@ ObjectReference Function PickNextPlant()
         && CheckCellAttached(nextPlant) \
         && CheckFor3D(nextPlant)
       return nextPlant
-    endif
+    endIf
+
   endWhile
 
   return none
 endFunction
 
 Function GoToNewPlant(float afSpeed)
-  Debug.Trace(GetState() + " - GoToNewPlant - " +  Spawner + " - " + self)
   ObjectReference nextPlant = PickNextPlant()
 
   if nextPlant
     currentPlant = nextPlant
-    string sLandingMarkerName = LandingMarkerPrefix + Utility.RandomInt(1, 3)
-
-    if nextPlant.HasNode(sLandingMarkerName)
-      BellShapeTranslateToRefNodeAtSpeedAndGotoState(currentPlant, sLandingMarkerName, fBellShapePathHeight, afSpeed, fMaxRotationSpeed, "AtPlant")
-    else
-      string sFirstMarkerName = LandingMarkerPrefix + 1
-
-      if nextPlant.HasNode(sFirstMarkerName)
-        BellShapeTranslateToRefNodeAtSpeedAndGotoState(currentPlant, sFirstMarkerName, fBellShapePathHeight, afSpeed, fMaxRotationSpeed, "AtPlant")
-      else
-        BellShapeTranslateToRefAtSpeedAndGotoState(currentPlant, fBellShapePathHeight, afSpeed, fMaxRotationSpeed, "AtPlant")
-      endif
-    endif
+    SplineTranslateToRefAtSpeedAndGotoState(currentPlant, afSpeed, fMaxRotationSpeed, "AtPlant")
   else
     GoToState("KillForTheNight")
     RegisterForSingleUpdate(fWaitingToDieTimer)
-  endif
+  endIf
 endFunction
 
 Function WarpToNewPlant()
-  Debug.Trace(GetState() + " - WarpToNewPlant - " +  Spawner + " - " + self)
   ObjectReference nextPlant = PickNextPlant()
 
   if nextPlant
     currentPlant = nextPlant
-    string sLandingMarkerName = LandingMarkerPrefix + Utility.RandomInt(1, 3)
-
-    if nextPlant.HasNode(sLandingMarkerName)
-      WarpToRefNodeAndGotoState(currentPlant, sLandingMarkerName, "AtPlant")
-    else
-      string sFirstMarkerName = LandingMarkerPrefix + 1
-
-      if nextPlant.HasNode(sFirstMarkerName)
-        WarpToRefNodeAndGotoState(currentPlant, sFirstMarkerName, "AtPlant")
-      else
-        WarpToRefAndGotoState(currentPlant, "AtPlant")
-      endif
-    endif
+    WarpToRefAndGotoState(CurrentPlant, "AtPlant")
   else
     GoToState("KillForTheNight")
     RegisterForSingleUpdate(fWaitingToDieTimer)
-  endif
-endFunction
-
-Function DoPathStartStuff()
-  SetAnimationVariableFloat("fTakeOff", 1.0)
-endFunction
-
-Function DoPathendStuff()
-  SetAnimationVariableFloat("fTakeOff", 0.0)
+  endIf
 endFunction

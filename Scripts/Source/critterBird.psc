@@ -1,4 +1,5 @@
 Scriptname critterBird extends Critter
+{ Behavior script for birds. }
 
 ;===============================================================================
 ;
@@ -73,6 +74,10 @@ State onGround
   endEvent
 
   Event OnEndState()
+    if CheckViability()
+      return
+    endif
+
     PlayAnimationAndWait("takeOff", "end")
   endEvent
 
@@ -167,8 +172,7 @@ Function OnStart()
   SetScale(Utility.RandomFloat(fMinScale, fMaxScale))
   Enable()
 
-  if !CheckFor3D(self)
-    DisableAndDelete(false)
+  if CheckViability()
     return
   endif
 
@@ -185,6 +189,10 @@ endFunction
 Function PlayIdle()
   int iDecision = Utility.RandomInt(1, 2)
 
+  if CheckViability()
+    return
+  endif
+
   if iDecision == 1
     PlayAnimationAndWait("StartGrndPeck", "StartGrndLook")
   else
@@ -193,7 +201,7 @@ Function PlayIdle()
 endFunction
 
 Function GroundHop()
-  float fAngleZ = GetfAngleZ()
+  float fAngleZ = GetAngleZ()
   float fHopDistance = Utility.RandomFloat(fMinHop, fMaxHop)
   float NewX = X + fHopDistance * Math.Cos(fAngleZ)
   float NewY = Y + fHopDistance * Math.Sin(fAngleZ)
@@ -249,4 +257,8 @@ ObjectReference Function FindPerch()
   endWhile
 
   return perch
+endFunction
+
+Function TargetClear()
+  goalPerch = none
 endFunction
