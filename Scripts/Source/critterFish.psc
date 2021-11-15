@@ -1,6 +1,12 @@
 ScriptName CritterFish extends Critter
 { Behavior script for fish. }
 
+;===============================================================================
+;
+; PROPERTIES
+;
+;===============================================================================
+
 float Property fActorDetectionDistance = 300.0 auto
 {The Distance at which an actor will trigger a flee behavior}
 
@@ -38,9 +44,21 @@ int Property iPercentChanceSchooling = 50 auto
 
 int Property iPercentChanceStopSchooling = 5 auto
 
+;===============================================================================
+;
+; HIDDEN
+;
+;===============================================================================
+
 bool Property bMoving = false auto hidden
 
 float Property fMoving = 0.0 auto hidden
+
+;===============================================================================
+;
+; VARIABLES
+;
+;===============================================================================
 
 CritterFish TargetFish = none
 
@@ -58,25 +76,31 @@ float fTargetAngleY
 
 float fTargetAngleZ
 
+;===============================================================================
+;
+; STATES
+;
+;===============================================================================
+
 State RandomSwimming
 
   Event OnUpdate()
     if CheckViableDistance()
-      float fspeed = fFleeTranslationSpeed
+      float fSpeed = fFleeTranslationSpeed
 
       if !bFoundClosestActor
-        fspeed = Utility.RandomFloat(fTranslationSpeedMean - fTranslationSpeedVariance, fTranslationSpeedMean + fTranslationSpeedVariance)
+        fSpeed = Utility.RandomFloat(fTranslationSpeedMean - fTranslationSpeedVariance, fTranslationSpeedMean + fTranslationSpeedVariance)
       endif
 
       if Utility.RandomInt(1, 100) <= iPercentChanceSchooling
         if PickTargetFishForSchooling() && PickRandomPointBehindTargetFish()
           GotoState("Schooling")
-          SchoolWithOtherFish(fspeed)
+          SchoolWithOtherFish(fSpeed)
         else
-          GoToNewPoint(fspeed)
+          GotoNewPoint(fSpeed)
         endif
       else
-        GoToNewPoint(fspeed)
+        GotoNewPoint(fSpeed)
       endif
     endif
   endEvent
@@ -96,13 +120,13 @@ State Schooling
       if bFoundClosestActor
         GotoState("RandomSwimming")
         TargetClear()
-        GoToNewPoint(fFleeTranslationSpeed)
+        GotoNewPoint(fFleeTranslationSpeed)
       elseif Utility.RandomInt(1, 100) > iPercentChanceStopSchooling && TargetFish as CritterFish && TargetFish.fMoving && PickRandomPointBehindTargetFish()
         SchoolWithOtherFish(TargetFish.fMoving)
       else
         GotoState("RandomSwimming")
         TargetClear()
-        GoToNewPoint(Utility.RandomFloat(fTranslationSpeedMean - fTranslationSpeedVariance, fTranslationSpeedMean + fTranslationSpeedVariance))
+        GotoNewPoint(Utility.RandomFloat(fTranslationSpeedMean - fTranslationSpeedVariance, fTranslationSpeedMean + fTranslationSpeedVariance))
       endif
     endif
   endEvent
@@ -114,26 +138,27 @@ State Schooling
 
 endState
 
-Function FollowClear()
-  float delay = 0.367879
+State Initialized
 
-  while TargetFish && delay < 2.943
-    Utility.Wait(delay)
-    delay += delay
-  endWhile
+  Event OnUpdate()
+    { Override. }
+    if CheckCellAttached(self)
+      OnStart()
+    else
+      DisableAndDelete()
+    endif
+  endEvent
 
-  TargetFish = none
-endFunction
+endState
 
-Function TargetClear()
-  if TargetFish
-    TargetFish.Follower = none
-  endif
-
-  TargetFish = none
-endFunction
+;===============================================================================
+;
+; FUNCTIONS
+;
+;===============================================================================
 
 Function OnStart()
+  { Override. }
   SetScale(Utility.RandomFloat(fMinScale, fMaxScale))
   WarpToRandomPoint()
   Enable()
@@ -147,14 +172,29 @@ Function OnStart()
   RegisterForSingleUpdate(0.0)
 endFunction
 
+Function FollowClear()
+  { Override. }
+  TargetFish = none
+endFunction
+
+Function TargetClear()
+  { Override. }
+  if TargetFish
+    TargetFish.Follower = none
+  endif
+
+  TargetFish = none
+endFunction
+
 Function PickRandomPoint()
   float fLength = Utility.RandomFloat(0.0, fLeashLength)
+
   fTargetAngleZ = Utility.RandomFloat(-180.0, 180.0)
   fTargetX = fSpawnerX + fLength * Math.Cos(fTargetAngleZ)
   fTargetY = fSpawnerY + fLength * Math.Sin(fTargetAngleZ)
 
   if fMinDepth < fDepth
-    fTargetZ = fSpawnerZ - Utility.RandomFloat(fMinDepth, fDepth - ((flength * (fDepth - fMinDepth)) / fLeashLength))
+    fTargetZ = fSpawnerZ - Utility.RandomFloat(fMinDepth, fDepth - fLength * (fDepth - fMinDepth) / fLeashLength)
   else
     fTargetZ = fSpawnerZ
   endif
@@ -163,34 +203,36 @@ Function PickRandomPoint()
 endFunction
 
 bool Function PickTargetFishForSchooling()
-  if Spawner && CheckCellAttached(Spawner)
-    TargetFish = Game.FindRandomReferenceOfAnyTypeInList(Spawner.CritterTypes, fSpawnerX, fSpawnerY, fSpawnerZ, fLeashLength - fSchoolingDistanceY) as CritterFish
+  TargetFish = Game.FindRandomReferenceOfAnyTypeInList(Spawner.CritterTypes, fSpawnerX, fSpawnerY, fSpawnerZ, fLeashLength - fSchoolingDistanceY) as CritterFish
 
-    if TargetFish && TargetFish != self && TargetFish.FollowSet(self as ObjectReference)
-      return true
-    endif
-
-    TargetFish = none
+  if TargetFish && TargetFish != self && TargetFish.FollowSet(self as ObjectReference)
+    return true
   endif
 
+  TargetFish = none
   return false
 endFunction
 
 bool Function PickRandomPointBehindTargetFish()
-  float ftargetFishX = targetFish.X - fSpawnerX
-  float ftargetFishY = targetFish.Y - fSpawnerY
+  float fTargetFishX = targetFish.X - fSpawnerX
+  float fTargetFishY = targetFish.Y - fSpawnerY
+
   fTargetZ = targetFish.Z
   fTargetAngleZ = targetFish.GetAngleZ()
+
   float fDistance = Utility.RandomFloat(fSchoolingDistanceX, fSchoolingDistanceY)
-  float fDeltaAngle = fTargetAngleZ + Utility.RandomFloat(-fAngleVarianceZ, fAngleVarianceZ)
-  fTargetX = ftargetFishX - fDistance * Math.Cos(fDeltaAngle)
-  fTargetY = ftargetFishY - fDistance * Math.Sin(fDeltaAngle)
-  float flength = Math.Sqrt(fTargetX * fTargetX + fTargetY * fTargetY)
+  float fDeltaAngle = fTargetAngleZ + Utility.RandomFloat(fAngleVarianceZ * -1.0, fAngleVarianceZ)
+
+  fTargetX = fTargetFishX - fDistance * Math.Cos(fDeltaAngle)
+  fTargetY = fTargetFishY - fDistance * Math.Sin(fDeltaAngle)
+
+  float fLength = Math.Sqrt(fTargetX * fTargetX + fTargetY * fTargetY)
+
   fTargetX += fSpawnerX
   fTargetY += fSpawnerY
 
-  if flength < fLeashLength && fMinDepth < fDepth
-    fTargetZ = fSpawnerZ - Utility.RandomFloat(fMinDepth, (fDepth - ((flength * (fDepth - fMinDepth)) / fLeashLength)))
+  if fLength < fLeashLength && fMinDepth < fDepth
+    fTargetZ = fSpawnerZ - Utility.RandomFloat(fMinDepth, fDepth - fLength * (fDepth - fMinDepth) / fLeashLength)
   endif
 
   fTargetAngleX = 0.0
@@ -198,16 +240,11 @@ endFunction
 
 Function WarpToRandomPoint()
   PickRandomPoint()
-
-  if CheckViability()
-    return
-  endif
-
   SetPosition(fTargetX, fTargetY, fTargetZ)
   SetAngle(fTargetAngleX, 0.0, fTargetAngleZ)
 endFunction
 
-Function GoToNewPoint(float afSpeed)
+Function GotoNewPoint(float afSpeed)
   PickRandomPoint()
   fMoving = afSpeed
 
@@ -215,7 +252,7 @@ Function GoToNewPoint(float afSpeed)
     return
   endif
 
-  SplineTranslateTo(fTargetX, ftargetY, ftargetZ, fTargetAngleX, 0.0, fTargetAngleZ, fSplineCurvature, afSpeed, fMaxRotationSpeed)
+  SplineTranslateTo(fTargetX, fTargetY, fTargetZ, fTargetAngleX, 0.0, fTargetAngleZ, fSplineCurvature, afSpeed, fMaxRotationSpeed)
 endFunction
 
 Function SchoolWithOtherFish(float afSpeed)
@@ -225,10 +262,5 @@ Function SchoolWithOtherFish(float afSpeed)
     return
   endif
 
-  SplineTranslateTo(fTargetX, ftargetY, ftargetZ, fTargetAngleX, 0.0, fTargetAngleZ, fSplineCurvature, afSpeed, fMaxRotationSpeed)
+  SplineTranslateTo(fTargetX, fTargetY, fTargetZ, fTargetAngleX, 0.0, fTargetAngleZ, fSplineCurvature, afSpeed, fMaxRotationSpeed)
 endFunction
-
-Event OnCellDetach()
-  fMoving = 0.0
-  parent.OnCellDetach()
-endEvent

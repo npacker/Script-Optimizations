@@ -83,6 +83,19 @@ State onGround
 
 endState
 
+State Initialized
+
+  Event OnUpdate()
+    { Override. }
+    if CheckCellAttached(self)
+      OnStart()
+    else
+      DisableAndDelete()
+    endif
+  endEvent
+
+endState
+
 ;-------------------------------------------------------------------------------
 ; FLYING
 ;-------------------------------------------------------------------------------
@@ -121,7 +134,7 @@ State flyingToPerch
     elseif goalPerch
       LandAtPerch(goalPerch)
     else
-      GoToState("Flying")
+      GotoState("Flying")
       RegisterForSingleUpdate(0.0)
     endif
   endEvent
@@ -182,7 +195,7 @@ Function OnStart()
     leashLength = spawner.fLeashOverride
   endif
 
-  GoToState("onGround")
+  GotoState("onGround")
   RegisterForSingleUpdate(0.0)
 endFunction
 
@@ -218,7 +231,7 @@ Function TakeFlight()
     return
   endIf
 
-  GoToState("Flying")
+  GotoState("Flying")
   SplineTranslateTo(X, Y, Z + 64.0, 0.0, 0.0, GetAngleZ(), 50.0, fSpeed / 2)
 endFunction
 
@@ -227,7 +240,7 @@ Function FlyTo(ObjectReference akGoal)
     return
   endIf
 
-  GoToState("Flying")
+  GotoState("Flying")
   SplineTranslateTo(akGoal.X, akGoal.Y, akGoal.Z + 64.0, 0.0, 0.0, GetAngleZ(), 200.0, fSpeed)
 endFunction
 
@@ -236,7 +249,7 @@ Function LandAtPerch(objectReference akGoal)
     return
   endIf
 
-  GoToState("perched")
+  GotoState("perched")
   SplineTranslateTo(akGoal.X, akGoal.Y, akGoal.Z, 0.0, 0.0, Utility.RandomFloat(0.0, 360.0), 300.0, fSpeed / 2.0)
 endFunction
 

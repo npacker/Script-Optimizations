@@ -249,17 +249,14 @@ State Deleted
 
   Event OnUpdate()
     { Override. }
-    Debug.Trace(GetState() + " - OnUpdate - " + Spawner + " - " + self)
   endEvent
 
   Event OnCellDetach()
     { Override. }
-    Debug.Trace(GetState() + " - OnCellDetach - " + Spawner + " - " + self)
   endEvent
 
   Event OnUnload()
     { Override. }
-    Debug.Trace(GetState() + " - OnUnload - " + Spawner + " - " + self)
   endEvent
 
   Event OnActivate(ObjectReference akActionRef)
@@ -272,7 +269,6 @@ State Deleted
 
   bool Function CheckViability()
     { Override. }
-    Debug.Trace(GetState() + " - CheckViability (unviable) - " + Spawner + " - " + self)
     return true
   endFunction
 
@@ -283,7 +279,6 @@ State Deleted
 
   Function RegisterForSingleUpdate(float afInterval)
     { Override. }
-    Debug.Trace(GetState() + " - RegisterForSingleUpdate - " + Spawner + " - " + self)
   endFunction
 
 endState
@@ -291,14 +286,12 @@ endState
 State Deleting
 
   Event OnBeginState()
-    Debug.Trace(GetState() + " - OnBeginState - " + Spawner + " - " + self)
     RegisterForSingleUpdate(1.0)
   endEvent
 
   Event OnUpdate()
     { Override. }
-    Debug.Trace(GetState() + " - OnUpdate - " + Spawner + " - " + self)
-    GoToState("Deleted")
+    GotoState("Deleted")
     Utility.Wait(1.0)
     TargetClear()
 
@@ -332,12 +325,10 @@ State Deleting
 
   Event OnCellDetach()
     { Override. }
-    Debug.Trace(GetState() + " - OnCellDetach - " + Spawner + " - " + self)
   endEvent
 
   Event OnUnload()
     { Override. }
-    Debug.Trace(GetState() + " - OnUnload - " + Spawner + " - " + self)
   endEvent
 
   Event OnActivate(ObjectReference akActionRef)
@@ -362,7 +353,6 @@ State Deleting
 
   bool Function CheckViability()
     { Override. }
-    Debug.Trace(GetState() + " - CheckViability (unviable) - " + Spawner + " - " + self)
     return true
   endFunction
 
@@ -377,7 +367,6 @@ State Initialized
 
   Event OnUpdate()
     { Override. }
-    Debug.Trace(GetState() + " - OnUpdate - " + Spawner + " - " + self)
     GotoState("")
     landingMarker = PlaceAtMe(LandingMarkerForm)
     dummyMarker = PlaceAtMe(LandingMarkerForm)
@@ -399,7 +388,7 @@ State BellShapeGoingUp
 
   Event OnTranslationComplete()
     { Override. }
-    GoToState("BellShapeGoingAcross")
+    GotoState("BellShapeGoingAcross")
 
     float fsecondWaypointPercent = 1.0 - fBellShapedWaypointPercent
     float fSecondWaypointX = fBellShapeStartX + fBellShapeDeltaX * fsecondWaypointPercent
@@ -423,7 +412,7 @@ State BellShapeGoingAcross
 
   Event OnTranslationComplete()
     { Override. }
-    GoToState("BellShapeGoingDown")
+    GotoState("BellShapeGoingDown")
 
     if CheckViability()
       return
@@ -442,7 +431,7 @@ State BellShapeGoingDown
 
   Event OnTranslationComplete()
     { Override. }
-    GoToState("BellShapeLanding")
+    GotoState("BellShapeLanding")
 
     DoPathEndStuff()
 
@@ -495,7 +484,7 @@ State SplineTranslation
 
   Event OnTranslationComplete()
     { Override. }
-    GoToState("StraightLineLanding")
+    GotoState("StraightLineLanding")
     DoPathEndStuff()
 
     float fTangentMagnitude = Utility.RandomFloat(fPathCurveMean - fPathCurveVariance, fPathCurveMean + fPathCurveVariance)
@@ -531,27 +520,22 @@ endState
 ;===============================================================================
 
 Event OnUpdate()
-  Debug.Trace(GetState() + " - OnUpdate - " + Spawner + " - " + self)
   DisableAndDelete()
 endEvent
 
 Event OnCellAttach()
-  Debug.Trace(GetState() + " - OnCellAttach - " + Spawner + " - " + self)
   DisableAndDelete(false)
 endEvent
 
 Event OnCellDetach()
-  Debug.Trace(GetState() + " - OnCellDetach - " + Spawner + " - " + self)
   DisableAndDelete(false)
 endEvent
 
 Event OnUnload()
-  Debug.Trace(GetState() + " - OnUnload - " + Spawner + " - " + self)
   DisableAndDelete(false)
 endEvent
 
 Event OnActivate(ObjectReference akActionRef)
-  Debug.Trace(GetState() + " - OnActivate - " + Spawner + " - " + self)
   DisableAndDelete(false)
 
   if nonIngredientLootable
@@ -571,12 +555,10 @@ Event OnActivate(ObjectReference akActionRef)
 endEvent
 
 Event OnHit(ObjectReference akAggressor, Form akWeapon, Projectile akProjectile, bool abPowerAttack, bool abSneakAttack, bool abBashAttack, bool abHitBlocked)
-  Debug.Trace(GetState() + " - OnHit - " + Spawner + " - " + self)
   Die()
 endEvent
 
 Event OnMagicEffectApply(ObjectReference akCaster, MagicEffect akEffect)
-  Debug.Trace(GetState() + " - OnMagicEffectApply - " + Spawner + " - " + self)
   Die()
 EndEvent
 
@@ -688,8 +670,7 @@ Function Die()
 endFunction
 
 Function DisableAndDelete(bool abFadeOut = true)
-  Debug.Trace(GetState() + " - DisableAndDelete - " + Spawner + " - " + self)
-  GoToState("Deleting")
+  GotoState("Deleting")
   bDisabled = IsDisabled()
 
   if Spawner && !bDisabled
@@ -780,7 +761,7 @@ Function SplineTranslateToRefAtSpeed(ObjectReference arTarget, float afSpeed, fl
     return
   endif
 
-  GoToState("SplineTranslation")
+  GotoState("SplineTranslation")
   SplineTranslateTo(ftargetX, ftargetY, ftargetZ, fStraightLineTargetAngleX, fStraightLineTargetAngleY, fStraightLineTargetAngleZ, fTangentMagnitude, afSpeed, afMaxRotationSpeed)
 endFunction
 
@@ -839,7 +820,7 @@ Function TranslateToRefAtSpeed(ObjectReference arTarget, float afSpeed, float af
     return
   endif
 
-  GoToState("Translation")
+  GotoState("Translation")
   TranslateTo(ftargetX, ftargetY, ftargetZ, fStraightLineTargetAngleX, fStraightLineTargetAngleY, fStraightLineTargetAngleZ, afSpeed, afMaxRotationSpeed)
 endFunction
 
@@ -906,7 +887,7 @@ Function BellShapeTranslateToRefAtSpeed(ObjectReference arTarget, float afBellHe
     return
   endif
 
-  GoToState("BellShapeGoingUp")
+  GotoState("BellShapeGoingUp")
   SplineTranslateTo(fFirstWaypointX, fFirstWaypointY, fFirstWaypointZ, GetAngleX(), GetAngleY(), GetAngleZ(), fPathCurveMean, fBellShapeSpeed, afMaxRotationSpeed)
 endFunction
 
@@ -994,19 +975,15 @@ endFunction
 
 bool Function CheckViability()
   if CheckCellAttached(self) && CheckFor3D(self)
-    Debug.Trace(GetState() + " - CheckViability (viable) - " + Spawner + " - " + self)
     return false
   endif
 
-  Debug.Trace(GetState() + " - CheckViability (unviable) - " + Spawner + " - " + self)
   DisableAndDelete()
   return true
 endFunction
 
 bool Function CheckViableDistance()
-  if CheckCellAttached(self) \
-      && CheckFor3D(self) \
-      && PlayerRef.GetDistance(self) <= fMaxPlayerDistance
+  if CheckCellAttached(self) && CheckFor3D(self) && PlayerRef.GetDistance(self) <= fMaxPlayerDistance
     return true
   endif
 

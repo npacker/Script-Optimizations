@@ -58,6 +58,27 @@ float fTargetAngleX
 
 ;===============================================================================
 ;
+; STATES
+;
+;===============================================================================
+
+State Initalized
+
+  Event OnUpdate()
+    { Override .}
+    GotoState("")
+
+    if CheckCellAttached(self)
+      OnStart()
+    else
+      DisableAndDelete()
+    endif
+  endEvent
+
+endState
+
+;===============================================================================
+;
 ; EVENTS
 ;
 ;===============================================================================
@@ -67,7 +88,7 @@ Event OnUpdate()
     if bFoundClosestActor
       FlyAway(fFleeTranslationSpeed)
     else
-      GoToNewPoint(Utility.RandomFloat(fTranslationSpeedMean - fTranslationSpeedVariance, fTranslationSpeedMean + fTranslationSpeedVariance))
+      GotoNewPoint(Utility.RandomFloat(fTranslationSpeedMean - fTranslationSpeedVariance, fTranslationSpeedMean + fTranslationSpeedVariance))
     endIf
   endIf
 endEvent
@@ -79,6 +100,7 @@ endEvent
 ;===============================================================================
 
 Function OnStart()
+  { Override .}
   SetScale(Utility.RandomFloat(fMinScale, fMaxScale))
   PlayAnimation(PathStartGraphEvent)
   WarpToRandomPoint()
@@ -93,6 +115,7 @@ Function OnStart()
 endFunction
 
 Function OnCritterGoalReached()
+  { Override .}
   bFoundClosestActor = Game.FindClosestActorFromRef(self, fActorDetectionDistance) as bool
 
   if bFoundClosestActor
@@ -108,7 +131,7 @@ Function WarpToRandomPoint()
   SetAngle(fTargetAngleX, 0.0, fTargetAngleZ)
 endFunction
 
-Function GoToNewPoint(float afSpeed)
+Function GotoNewPoint(float afSpeed)
   PickRandomPoint()
 
   if CheckViability()

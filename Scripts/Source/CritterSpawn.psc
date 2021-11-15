@@ -1,11 +1,11 @@
 ScriptName CritterSpawn extends ObjectReference
 { Controller script for critter spawner .}
 
-;-------------------------------------------------------------------------------
+;===============================================================================
 ;
 ; PROPERTIES
 ;
-;-------------------------------------------------------------------------------
+;===============================================================================
 
 GlobalVariable property GameHour auto
 { Make this point to the GameHour global }
@@ -46,29 +46,29 @@ float property fLeashOverride auto
 bool property bSpawnInPrecipitation auto
 { Should this critter spawn in rain/snow? }
 
-;-------------------------------------------------------------------------------
+;===============================================================================
 ;
 ; HIDDEN
 ;
-;-------------------------------------------------------------------------------
+;===============================================================================
 
 int property iCurrentCritterCount = 0 auto hidden
 
-;-------------------------------------------------------------------------------
+;===============================================================================
 ;
 ; VARIABLES
 ;
-;-------------------------------------------------------------------------------
+;===============================================================================
 
 float fCheckPlayerDistanceTime = 2.0
 
 float fCheckConditionsGameTime = 0.25
 
-;-------------------------------------------------------------------------------
+;===============================================================================
 ;
 ; STATES
 ;
-;-------------------------------------------------------------------------------
+;===============================================================================
 
 State DoneSpawningCritters
 
@@ -114,78 +114,69 @@ State PendingSpawnConditions
 
   Event OnUpdate()
     { Override. }
-    Debug.Trace(GetState() + " - OnUpdate - " + self)
   endEvent
 
   Event OnUpdateGameTime()
-    Debug.Trace(GetState() + " - OnUpdateGameTime - " + self)
-    GoToState("")
+    GotoState("")
     RegisterForSingleUpdate(fCheckPlayerDistanceTime)
   endEvent
 
 endState
 
-;-------------------------------------------------------------------------------
+;===============================================================================
 ;
 ; EVENTS
 ;
-;-------------------------------------------------------------------------------
+;===============================================================================
 
 Event OnUpdate()
-  Debug.Trace(GetState() + " - OnUpdate - " + self)
   TryToSpawnCritters()
 endEvent
 
 Event OnCellAttach()
-  Debug.Trace(GetState() + " - OnCellAttach - " + self)
-  GoToState("")
+  GotoState("")
   RegisterForSingleUpdate(fCheckPlayerDistanceTime)
 endEvent
 
 Event OnCellDetach()
-  Debug.Trace(GetState() + " - OnCellDetach - " + self)
-  GoToState("DoneSpawningCritters")
+  GotoState("DoneSpawningCritters")
 endEvent
 
 Event OnLoad()
-  Debug.Trace(GetState() + " - OnLoad - " + self)
-  GoToState("")
+  GotoState("")
   RegisterForSingleUpdate(fCheckPlayerDistanceTime)
 endEvent
 
 Event OnUnload()
-  Debug.Trace(GetState() + " - OnUnload - " + self)
-  GoToState("DoneSpawningCritters")
+  GotoState("DoneSpawningCritters")
 endEvent
 
-;-------------------------------------------------------------------------------
+;===============================================================================
 ;
 ; FUNCTIONS
 ;
-;-------------------------------------------------------------------------------
+;===============================================================================
 
 Function TryToSpawnCritters()
-  Debug.Trace(GetState() + " - TryToSpawnCritters - " + self)
   if IsLoaded()
     if IsActiveTime()
       float fPlayerDistance = (Game.GetForm(0x14) as Actor).GetDistance(self)
 
       if fPlayerDistance <= fMaxPlayerDistance
         SpawnInitialCritterBatch()
-        GoToState("DoneSpawningCritters")
+        GotoState("DoneSpawningCritters")
       else
         RegisterForSingleUpdate(fCheckPlayerDistanceTime + (fPlayerDistance - fMaxPlayerDistance) * 0.001)
       endif
     else
-      GoToState("PendingSpawnConditions")
+      GotoState("PendingSpawnConditions")
     endif
   else
-    GoToState("DoneSpawningCritters")
+    GotoState("DoneSpawningCritters")
   endif
 endFunction
 
 Function SpawnInitialCritterBatch()
-  Debug.Trace(GetState() + " - SpawnInitialCritterBatch - " + self)
   int crittersToSpawn = iMaxCritterCount - iCurrentCritterCount
 
   while crittersToSpawn > 0
@@ -195,7 +186,6 @@ Function SpawnInitialCritterBatch()
 endFunction
 
 Function SpawnCritterAtRef(ObjectReference arSpawnRef)
-  Debug.Trace(GetState() + " - SpawnCritterAtRef - " + self)
   Activator critterType = CritterTypes.GetAt(Utility.RandomInt(0, CritterTypes.GetSize() - 1)) as Activator
 
   if critterType == none
@@ -217,7 +207,6 @@ Function SpawnCritterAtRef(ObjectReference arSpawnRef)
 endFunction
 
 Function OnCritterDied()
-  Debug.Trace(GetState() + " - OnCritterDied - " + self)
   if iCurrentCritterCount > 0
     iCurrentCritterCount -= 1
   else
@@ -226,7 +215,6 @@ Function OnCritterDied()
 endFunction
 
 bool Function IsActiveTime()
-  Debug.Trace(GetState() + " - IsActiveTime - " + self)
   bool bInTimeRange = false
 
   if GameHour == none
@@ -246,7 +234,6 @@ bool Function IsActiveTime()
 endFunction
 
 bool Function IsLoaded()
-  Debug.Trace(GetState() + " - IsLoaded - " + self)
   Cell ParentCell = GetParentCell()
   return ParentCell && ParentCell.IsAttached() && Is3DLoaded()
 endFunction

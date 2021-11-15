@@ -82,13 +82,13 @@ bool bFoundClosestActor = false
 State AtPlant
 
   Event OnUpdate()
-    Debug.Trace(GetState() + " - OnUpdate - " + Spawner + " - " + self)
+    { Override .}
     if CheckViableDistance()
       if Spawner && Spawner.IsActiveTime()
         if bFoundClosestActor
-          GoToNewPlant(fFleeTranslationSpeed)
+          GotoNewPlant(fFleeTranslationSpeed)
         else
-          GoToNewPlant(Utility.RandomFloat(fTranslationSpeedMean - fTranslationSpeedVariance, fTranslationSpeedMean + fTranslationSpeedVariance))
+          GotoNewPlant(Utility.RandomFloat(fTranslationSpeedMean - fTranslationSpeedVariance, fTranslationSpeedMean + fTranslationSpeedVariance))
         endif
       else
         BellShapeTranslateToRefAtSpeedAndGotoState(Spawner, fBellShapePathHeight, fTranslationSpeedMean, fMaxRotationSpeed, "KillForTheNight")
@@ -97,7 +97,7 @@ State AtPlant
   endEvent
 
   Function OnCritterGoalReached()
-    Debug.Trace(GetState() + " - OnCritterGoalReached - " +  Spawner + " - " + self)
+    { Override .}
     bFoundClosestActor = Game.FindClosestActorFromRef(self, fActorDetectionDistance) as bool
 
     if bFoundClosestActor
@@ -112,7 +112,7 @@ endState
 State KillForTheNight
 
   Function OnCritterGoalReached()
-    Debug.Trace(GetState() + " - OnCritterGoalReached - " +  Spawner + " - " + self)
+    { Override .}
     RegisterForSingleUpdate(0.0)
   endFunction
 
@@ -125,7 +125,7 @@ endState
 ;===============================================================================
 
 Function OnStart()
-  Debug.Trace(GetState() + " - OnStart - " +  Spawner + " - " + self)
+  { Override .}
   SetScale(Utility.RandomFloat(fMinScale, fMaxScale))
   WarpToNewPlant()
   Enable()
@@ -139,11 +139,11 @@ Function OnStart()
 endFunction
 
 Function TargetClear()
+  { Override .}
   currentPlant = none
 endFunction
 
 ObjectReference Function PickNextPlant()
-  Debug.Trace(GetState() + " - PickNextPlant - " +  Spawner + " - " + self)
   int iMaxTries = 10
 
   while iMaxTries > 0
@@ -163,8 +163,7 @@ ObjectReference Function PickNextPlant()
   return none
 endFunction
 
-Function GoToNewPlant(float afSpeed)
-  Debug.Trace(GetState() + " - GoToNewPlant - " +  Spawner + " - " + self)
+Function GotoNewPlant(float afSpeed)
   ObjectReference nextPlant = PickNextPlant()
 
   if nextPlant
@@ -183,13 +182,12 @@ Function GoToNewPlant(float afSpeed)
       endif
     endif
   else
-    GoToState("KillForTheNight")
+    GotoState("KillForTheNight")
     RegisterForSingleUpdate(fWaitingToDieTimer)
   endif
 endFunction
 
 Function WarpToNewPlant()
-  Debug.Trace(GetState() + " - WarpToNewPlant - " +  Spawner + " - " + self)
   ObjectReference nextPlant = PickNextPlant()
 
   if nextPlant
@@ -208,7 +206,7 @@ Function WarpToNewPlant()
       endif
     endif
   else
-    GoToState("KillForTheNight")
+    GotoState("KillForTheNight")
     RegisterForSingleUpdate(fWaitingToDieTimer)
   endif
 endFunction
