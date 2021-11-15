@@ -432,7 +432,6 @@ State BellShapeGoingDown
   Event OnTranslationComplete()
     { Override. }
     GotoState("BellShapeLanding")
-
     DoPathEndStuff()
 
     float fSpeed = fBellShapeSpeed * fLandingSpeedRatio
