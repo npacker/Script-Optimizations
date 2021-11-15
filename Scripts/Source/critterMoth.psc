@@ -82,9 +82,12 @@ bool bFoundClosestActor = false
 State AtPlant
 
   Event OnUpdate()
-    { Override .}
+    { Override. }
     if CheckViableDistance()
-      if Spawner && Spawner.IsActiveTime()
+      if PlayerRef && ShouldFlockAroundPlayer()
+        DoPathStartStuff()
+        FlockToPlayer()
+      elseif Spawner && Spawner.IsActiveTime()
         if bFoundClosestActor
           GotoNewPlant(fFleeTranslationSpeed)
         else
@@ -97,7 +100,7 @@ State AtPlant
   endEvent
 
   Function OnCritterGoalReached()
-    { Override .}
+    { Override. }
     bFoundClosestActor = Game.FindClosestActorFromRef(self, fActorDetectionDistance) as bool
 
     if bFoundClosestActor
@@ -109,10 +112,28 @@ State AtPlant
 
 endState
 
+State FollowingPlayer
+
+  Event OnUpdate()
+    { Override. }
+    if Spawner && Spawner.GetDistance(self) < fLeashLength && PlayerRef && ShouldFlockAroundPlayer()
+      FlockToPlayer()
+    else
+      GoToNewPlant(fFlockTranslationSpeed)
+    endif
+  endEvent
+
+  Function OnCritterGoalReached()
+    { Override. }
+    RegisterForSingleUpdate(0.0)
+  endFunction
+
+endState
+
 State KillForTheNight
 
   Function OnCritterGoalReached()
-    { Override .}
+    { Override. }
     RegisterForSingleUpdate(0.0)
   endFunction
 
@@ -125,7 +146,7 @@ endState
 ;===============================================================================
 
 Function OnStart()
-  { Override .}
+  { Override. }
   SetScale(Utility.RandomFloat(fMinScale, fMaxScale))
   WarpToNewPlant()
   Enable()
@@ -139,7 +160,7 @@ Function OnStart()
 endFunction
 
 Function TargetClear()
-  { Override .}
+  { Override. }
   currentPlant = none
 endFunction
 
@@ -209,6 +230,32 @@ Function WarpToNewPlant()
     GotoState("KillForTheNight")
     RegisterForSingleUpdate(fWaitingToDieTimer)
   endif
+endFunction
+
+Function FlockToPlayer()
+  GoToState("FollowingPlayer")
+
+  if PlayerRef
+    float fTargetX = PlayerRef.X + Utility.RandomFloat(fFlockPlayerXYDist * -1.0, fFlockPlayerXYDist)
+    float fTargetY = PlayerRef.Y + Utility.RandomFloat(fFlockPlayerXYDist * -1.0, fFlockPlayerXYDist)
+    float fTargetZ = PlayerRef.Z + Utility.RandomFloat(fFlockPlayerZDistMin, fFlockPlayerZDistMax)
+    float fTargetAngleZ = Utility.RandomFloat(-180.0, 180.0)
+    float fTargetAngleX = Utility.RandomFloat(-20.0, 20.0)
+    float fPathCurve = Utility.RandomFloat(fPathCurveMean - fPathCurveVariance, fPathCurveMean + fPathCurveVariance)
+
+    if CheckViability()
+      return
+    endif
+
+    SplineTranslateTo(fTargetX, fTargetY, fTargetZ, fTargetAngleX, 0.0, fTargetAngleZ, fPathCurve, fFlockTranslationSpeed, fMaxRotationSpeed)
+  else
+    GoToState("KillForTheNight")
+    RegisterForSingleUpdate(fWaitingToDieTimer)
+  endif
+endFunction
+
+bool Function ShouldFlockAroundPlayer()
+  return false
 endFunction
 
 Function DoPathStartStuff()

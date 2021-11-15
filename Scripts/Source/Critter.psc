@@ -263,6 +263,14 @@ State Deleted
     { Override. }
   endEvent
 
+  Event OnHit(ObjectReference akAggressor, Form akWeapon, Projectile akProjectile, bool abPowerAttack, bool abSneakAttack, bool abBashAttack, bool abHitBlocked)
+    { Override. }
+  endEvent
+
+  Event OnMagicEffectApply(ObjectReference akCaster, MagicEffect akEffect)
+    { Override. }
+  EndEvent
+
   Function Die()
     { Override. }
   endFunction
@@ -286,20 +294,18 @@ endState
 State Deleting
 
   Event OnBeginState()
-    RegisterForSingleUpdate(1.0)
+    RegisterForSingleUpdate(2.0)
   endEvent
 
   Event OnUpdate()
     { Override. }
     GotoState("Deleted")
-    Utility.Wait(1.0)
     TargetClear()
 
     if Follower
       Critter FollowedBy = Follower as Critter
 
       if FollowedBy
-        Utility.Wait(2.0)
         FollowedBy.FollowClear()
       endif
     endif
@@ -334,6 +340,14 @@ State Deleting
   Event OnActivate(ObjectReference akActionRef)
     { Override. }
   endEvent
+
+  Event OnHit(ObjectReference akAggressor, Form akWeapon, Projectile akProjectile, bool abPowerAttack, bool abSneakAttack, bool abBashAttack, bool abHitBlocked)
+    { Override. }
+  endEvent
+
+  Event OnMagicEffectApply(ObjectReference akCaster, MagicEffect akEffect)
+    { Override. }
+  EndEvent
 
   Event OnTranslationAlmostComplete()
     { Override. }
@@ -466,6 +480,8 @@ State Translation
     { Override. }
     if CurrentTargetState
       GotoState(CurrentTargetState)
+    else
+      GotoState("")
     endif
 
     CurrentTargetState = ""
@@ -504,6 +520,8 @@ State StraightLineLanding
     { Override. }
     if CurrentTargetState
       GotoState(CurrentTargetState)
+    else
+      GotoState("")
     endif
 
     CurrentTargetState = ""
