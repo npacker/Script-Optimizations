@@ -182,7 +182,7 @@ Function SpawnInitialCritterBatch()
   while crittersToSpawn > 0
     crittersToSpawn -= 1
     SpawnCritterAtRef(self)
-  endWhile
+  endwhile
 endFunction
 
 Function SpawnCritterAtRef(ObjectReference arSpawnRef)

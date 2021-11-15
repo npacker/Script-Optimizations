@@ -158,7 +158,7 @@ ObjectReference Function PickNextPlant()
         && CheckFor3D(nextPlant)
       return nextPlant
     endif
-  endWhile
+  endwhile
 
   return none
 endFunction

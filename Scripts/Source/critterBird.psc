@@ -267,7 +267,7 @@ ObjectReference Function FindPerch()
       perch.reserved = true
       perch.incoming = self
     endif
-  endWhile
+  endwhile
 
   return perch
 endFunction

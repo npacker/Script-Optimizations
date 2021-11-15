@@ -86,11 +86,11 @@ State AtPlant
           GoToNewPlant(Utility.RandomFloat(fTranslationSpeedMean - fTranslationSpeedVariance, fTranslationSpeedMean + fTranslationSpeedVariance))
         else
           HoverCloseBy()
-        endIf
+        endif
       else
         SplineTranslateToRefAtSpeedAndGotoState(Spawner, fTranslationSpeedMean, fMaxRotationSpeed, "KillForTheNight")
-      endIf
-    endIf
+      endif
+    endif
   endEvent
 
   Event OnCritterGoalReached()
@@ -100,7 +100,7 @@ State AtPlant
       RegisterForSingleUpdate(0.0)
     else
       RegisterForSingleUpdate(Utility.RandomFloat(fTimeAtPlantMin, fTimeAtPlantMax))
-    endIf
+    endif
   EndEvent
 
 endState
@@ -115,8 +115,8 @@ State Hovering
         GoToNewPlant(Utility.RandomFloat(fTranslationSpeedMean - fTranslationSpeedVariance, fTranslationSpeedMean + fTranslationSpeedVariance))
       else
         HoverCloseBy()
-      endIf
-    endIf
+      endif
+    endif
   EndEvent
 
   Event OnCritterGoalReached()
@@ -176,7 +176,7 @@ Function HoverCloseBy()
 
   if CheckViability()
     return
-  endIf
+  endif
 
   TranslateTo(ftargetX, ftargetY, ftargetZ, ftargetAngleX, 0.0, ftargetAngleZ, Utility.RandomFloat(10, 30), fMaxRotationSpeed)
 endFunction
@@ -195,9 +195,8 @@ ObjectReference Function PickNextPlant()
         && CheckCellAttached(nextPlant) \
         && CheckFor3D(nextPlant)
       return nextPlant
-    endIf
-
-  endWhile
+    endif
+  endwhile
 
   return none
 endFunction
@@ -211,7 +210,7 @@ Function GoToNewPlant(float afSpeed)
   else
     GoToState("KillForTheNight")
     RegisterForSingleUpdate(fWaitingToDieTimer)
-  endIf
+  endif
 endFunction
 
 Function WarpToNewPlant()
@@ -223,5 +222,5 @@ Function WarpToNewPlant()
   else
     GoToState("KillForTheNight")
     RegisterForSingleUpdate(fWaitingToDieTimer)
-  endIf
+  endif
 endFunction

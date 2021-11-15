@@ -543,7 +543,7 @@ Event OnActivate(ObjectReference akActionRef)
     while iLootableIndex > 0
       iLootableIndex -= 1
       akActionRef.AddItem(NonIngredientLootable.GetAt(iLootableIndex), lootableCount)
-    endWhile
+    endwhile
   else
     akActionRef.AddItem(lootable, lootableCount)
   endif
@@ -649,7 +649,7 @@ Function Die()
       while iCorpseIndex > 0
         iCorpseIndex -= 1
         ItemDrop = PlaceAtMe(fakeCorpse.GetAt(iCorpseIndex), 1)
-      endWhile
+      endwhile
     else
       ItemDrop = PlaceAtMe(lootable, 1)
     endif
@@ -661,7 +661,7 @@ Function Die()
     float afZOffset = Utility.RandomFloat(Height, Height * 2.0) * -1.0
 
     ItemDrop.MoveTo(ItemDrop, afXOffset, afYOffset, afZOffset, false)
-  endWhile
+  endwhile
 
   if bPushOnDeath
     PlaceAtMe(deathPush)
@@ -1007,7 +1007,7 @@ bool Function CheckFor3D(ObjectReference akObject)
     fTimeWaited += fBaseWaitingTime
     bWaiting = fTimeWaited < fMaxWaitingTime
     bLoaded = akObject.Is3DLoaded()
-  endWhile
+  endwhile
 
   return bLoaded
 endFunction
