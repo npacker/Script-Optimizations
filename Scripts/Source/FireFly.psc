@@ -101,7 +101,7 @@ State AtPlant
     else
       RegisterForSingleUpdate(Utility.RandomFloat(fTimeAtPlantMin, fTimeAtPlantMax))
     endif
-  EndEvent
+  endEvent
 
 endState
 
@@ -117,12 +117,12 @@ State Hovering
         HoverCloseBy()
       endif
     endif
-  EndEvent
+  endEvent
 
   Event OnCritterGoalReached()
     bFoundClosestActor = Game.FindClosestActorFromRef(self, fActorDetectionDistance) as bool
     RegisterForSingleUpdate(0.0)
-  EndEvent
+  endEvent
 
 endState
 
@@ -134,7 +134,7 @@ State KillForTheNight
 
   Event OnCritterGoalReached()
     RegisterForSingleUpdate(0.0)
-  EndEvent
+  endEvent
 
 endState
 
