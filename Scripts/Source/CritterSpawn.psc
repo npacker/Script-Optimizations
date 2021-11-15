@@ -121,6 +121,18 @@ State PendingSpawnConditions
     RegisterForSingleUpdate(fCheckPlayerDistanceTime)
   endEvent
 
+  Function TryToSpawnCritters()
+    { Override. }
+  endFunction
+
+  Function SpawnInitialCritterBatch()
+    { Override. }
+  endFunction
+
+  Function SpawnCritterAtRef(ObjectReference arSpawnRef)
+    { Override. }
+  endFunction
+
 endState
 
 ;===============================================================================
