@@ -84,13 +84,7 @@ endState
 ;===============================================================================
 
 Event OnUpdate()
-  if CheckViableDistance()
-    if bFoundClosestActor
-      FlyAway(fFleeTranslationSpeed)
-    else
-      GotoNewPoint(Utility.RandomFloat(fTranslationSpeedMean - fTranslationSpeedVariance, fTranslationSpeedMean + fTranslationSpeedVariance))
-    endIf
-  endIf
+  DoCritterBehavior()
 endEvent
 
 ;===============================================================================
@@ -111,7 +105,7 @@ Function OnStart()
   endif
 
   SetMotionType(Motion_Keyframed, false)
-  RegisterForSingleUpdate(0.0)
+  DoCritterBehavior()
 endFunction
 
 Function OnCritterGoalReached()
@@ -119,9 +113,20 @@ Function OnCritterGoalReached()
   bFoundClosestActor = Game.FindClosestActorFromRef(self, fActorDetectionDistance) as bool
 
   if bFoundClosestActor
-    RegisterForSingleUpdate(0.0)
+    DoCritterBehavior()
   else
     RegisterForSingleUpdate(Utility.RandomFloat(fMinTimeNotMoving, fMaxTimeNotMoving))
+  endIf
+endFunction
+
+Function DoCritterBehavior()
+  { Override .}
+  if CheckViableDistance()
+    if bFoundClosestActor
+      FlyAway(fFleeTranslationSpeed)
+    else
+      GotoNewPoint(Utility.RandomFloat(fTranslationSpeedMean - fTranslationSpeedVariance, fTranslationSpeedMean + fTranslationSpeedVariance))
+    endIf
   endIf
 endFunction
 

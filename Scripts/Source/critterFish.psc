@@ -85,6 +85,19 @@ float fTargetAngleZ
 State RandomSwimming
 
   Event OnUpdate()
+    { Override. }
+    DoCritterBehavior()
+  endEvent
+
+  Function OnCritterGoalAlmostReached()
+    { Override. }
+    fMoving = 0.0
+    bFoundClosestActor = Game.FindClosestActorFromRef(self, fActorDetectionDistance) as bool
+    DoCritterBehavior()
+  endFunction
+
+  Function DoCritterBehavior()
+    { Override. }
     if CheckViableDistance()
       float fSpeed = fFleeTranslationSpeed
 
@@ -103,19 +116,25 @@ State RandomSwimming
         GotoNewPoint(fSpeed)
       endif
     endif
-  endEvent
-
-  Event OnCritterGoalAlmostReached()
-    fMoving = 0.0
-    bFoundClosestActor = Game.FindClosestActorFromRef(self, fActorDetectionDistance) as bool
-    RegisterForSingleUpdate(0.0)
-  EndEvent
+  endFunction
 
 endState
 
 State Schooling
 
   Event OnUpdate()
+    { Override. }
+    DoCritterBehavior()
+  endEvent
+
+  Function OnCritterGoalAlmostReached()
+    { Override. }
+    bFoundClosestActor = Game.FindClosestActorFromRef(self, fActorDetectionDistance) as bool
+    DoCritterBehavior()
+  endFunction
+
+  Function DoCritterBehavior()
+    { Override. }
     if CheckViableDistance()
       if bFoundClosestActor
         GotoState("RandomSwimming")
@@ -129,12 +148,7 @@ State Schooling
         GotoNewPoint(Utility.RandomFloat(fTranslationSpeedMean - fTranslationSpeedVariance, fTranslationSpeedMean + fTranslationSpeedVariance))
       endif
     endif
-  endEvent
-
-  Event OnCritterGoalAlmostReached()
-    bFoundClosestActor = Game.FindClosestActorFromRef(self, fActorDetectionDistance) as bool
-    RegisterForSingleUpdate(0.0)
-  EndEvent
+  endFunction
 
 endState
 
@@ -169,7 +183,7 @@ Function OnStart()
 
   SetMotionType(Motion_Keyframed, false)
   GotoState("RandomSwimming")
-  RegisterForSingleUpdate(0.0)
+  DoCritterBehavior()
 endFunction
 
 Function FollowClear()

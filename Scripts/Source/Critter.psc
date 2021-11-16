@@ -621,6 +621,10 @@ Function DoPathEndStuff()
   ; Empty.
 endFunction
 
+Function DoCritterBehavior()
+  ; Empty.
+endFunction
+
 Function FollowClear()
   ; Empty.
 endFunction

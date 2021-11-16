@@ -83,6 +83,22 @@ State AtPlant
 
   Event OnUpdate()
     { Override. }
+    DoCritterBehavior()
+  endEvent
+
+  Function OnCritterGoalReached()
+    { Override. }
+    bFoundClosestActor = Game.FindClosestActorFromRef(self, fActorDetectionDistance) as bool
+
+    if bFoundClosestActor
+      DoCritterBehavior()
+    else
+      RegisterForSingleUpdate(Utility.RandomFloat(fTimeAtPlantMin, fTimeAtPlantMax))
+    endif
+  endFunction
+
+  Function DoCritterBehavior()
+    { Override. }
     if CheckViableDistance()
       if PlayerRef && ShouldFlockAroundPlayer()
         DoPathStartStuff()
@@ -97,17 +113,6 @@ State AtPlant
         BellShapeTranslateToRefAtSpeedAndGotoState(Spawner, fBellShapePathHeight, fTranslationSpeedMean, fMaxRotationSpeed, "KillForTheNight")
       endif
     endif
-  endEvent
-
-  Function OnCritterGoalReached()
-    { Override. }
-    bFoundClosestActor = Game.FindClosestActorFromRef(self, fActorDetectionDistance) as bool
-
-    if bFoundClosestActor
-      RegisterForSingleUpdate(0.0)
-    else
-      RegisterForSingleUpdate(Utility.RandomFloat(fTimeAtPlantMin, fTimeAtPlantMax))
-    endif
   endFunction
 
 endState
@@ -116,16 +121,21 @@ State FollowingPlayer
 
   Event OnUpdate()
     { Override. }
+    DoCritterBehavior()
+  endEvent
+
+  Function OnCritterGoalReached()
+    { Override. }
+    DoCritterBehavior()
+  endFunction
+
+  Function DoCritterBehavior()
+    { Override. }
     if Spawner && Spawner.GetDistance(self) < fLeashLength && PlayerRef && ShouldFlockAroundPlayer()
       FlockToPlayer()
     else
       GoToNewPlant(fFlockTranslationSpeed)
     endif
-  endEvent
-
-  Function OnCritterGoalReached()
-    { Override. }
-    RegisterForSingleUpdate(0.0)
   endFunction
 
 endState
@@ -134,7 +144,7 @@ State KillForTheNight
 
   Function OnCritterGoalReached()
     { Override. }
-    RegisterForSingleUpdate(0.0)
+    DisableAndDelete()
   endFunction
 
 endState
@@ -156,7 +166,7 @@ Function OnStart()
   endif
 
   SetMotionType(Motion_Keyframed, false)
-  RegisterForSingleUpdate(0.0)
+  DoCritterBehavior()
 endFunction
 
 Function TargetClear()
