@@ -99,11 +99,6 @@ Function OnStart()
   PlayAnimation(PathStartGraphEvent)
   WarpToRandomPoint()
   Enable()
-
-  if CheckViability()
-    return
-  endif
-
   SetMotionType(Motion_Keyframed, false)
   DoCritterBehavior()
 endFunction

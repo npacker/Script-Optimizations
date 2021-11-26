@@ -176,11 +176,6 @@ Function OnStart()
   SetScale(Utility.RandomFloat(fMinScale, fMaxScale))
   WarpToRandomPoint()
   Enable()
-
-  if CheckViability()
-    return
-  endif
-
   SetMotionType(Motion_Keyframed, false)
   GotoState("RandomSwimming")
   DoCritterBehavior()

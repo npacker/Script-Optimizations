@@ -271,6 +271,18 @@ State Deleted
     { Override. }
   EndEvent
 
+  Event OnTranslationAlmostComplete()
+    { Override. }
+  endEvent
+
+  Event OnTranslationComplete()
+    { Override. }
+  endEvent
+
+  Event OnTranslationFailed()
+    { Override. }
+  endEvent
+
   Function Die()
     { Override. }
   endFunction
@@ -710,43 +722,57 @@ Function DisableAndDelete(bool abFadeOut = true)
 endFunction
 
 bool Function PlaceLandingMarker(ObjectReference arTarget, string asTargetNode)
-  if !CheckFor3D(landingMarker) || !CheckFor3D(arTarget)
-    return true
-  endif
-
   if asTargetNode == ""
     float fPositionX = arTarget.X + Utility.RandomFloat(fPositionVarianceX * -1.0, fPositionVarianceX)
     float fPositionY = arTarget.Y + Utility.RandomFloat(fPositionVarianceY * -1.0, fPositionVarianceY)
     float fPositionZ = arTarget.Z + Utility.RandomFloat(fPositionVarianceZMin, fPositionVarianceZMax)
-
-    landingMarker.SetPosition(fPositionX, fPositionY, fPositionZ)
-
     float fAngleX = arTarget.GetAngleX() + Utility.RandomFloat(fAngleVarianceX * -1.0, fAngleVarianceX)
     float fAngleY = arTarget.GetAngleY()
     float fAngleZ = arTarget.GetAngleZ() + Utility.RandomFloat(fAngleVarianceZ * -1.0, fAngleVarianceZ)
 
+    if !landingMarker.Is3DLoaded() \
+        || !CheckCellAttached(landingMarker) \
+        || !arTarget.Is3DLoaded() \
+        || !CheckCellAttached(arTarget)
+      return true
+    endif
+
+    landingMarker.SetPosition(fPositionX, fPositionY, fPositionZ)
     landingMarker.SetAngle(fAngleX, fAngleY, fAngleZ)
   else
-    landingMarker.MoveToNode(arTarget, asTargetNode)
+    if !landingMarker.Is3DLoaded() \
+        || !CheckCellAttached(landingMarker) \
+        || !arTarget.Is3DLoaded() \
+        || !CheckCellAttached(arTarget)
+      return true
+    endif
+
+    landingMarker.SplineTranslateToRefNode(arTarget, asTargetNode, 0.0, 10000000000.0)
   endif
 
   return false
 endFunction
 
 bool Function PlaceDummyMarker(ObjectReference arTarget, string asTargetNode)
-  if !CheckFor3D(dummyMarker) || !CheckFor3D(arTarget)
+  if !dummyMarker.Is3DLoaded() \
+      || !CheckCellAttached(dummyMarker) \
+      || !arTarget.Is3DLoaded() \
+      || !CheckCellAttached(arTarget)
     return true
   endif
 
-  dummyMarker.MoveToNode(arTarget, asTargetNode)
+  dummyMarker.SplineTranslateToRefNode(arTarget, asTargetNode, 0.0, 1000000000.0)
   return false
 endFunction
 
-Function SplineTranslateToRefAtSpeed(ObjectReference arTarget, float afSpeed, float afMaxRotationSpeed)
-  if CheckViability()
-    return
+Function SetMotionType(int aiMotionType, bool abAllowActivate = true)
+  { Override. }
+  if Is3DLoaded()
+    parent.SetMotionType(aiMotionType, abAllowActivate)
   endif
+endFunction
 
+Function SplineTranslateToRefAtSpeed(ObjectReference arTarget, float afSpeed, float afMaxRotationSpeed)
   SetMotionType(Motion_Keyframed, false)
   DoPathStartStuff()
 
@@ -755,7 +781,7 @@ Function SplineTranslateToRefAtSpeed(ObjectReference arTarget, float afSpeed, fl
     return
   endif
 
-  if !CheckFor3D(dummyMarker)
+  if !dummyMarker.Is3DLoaded()
     DisableAndDelete(false)
     return
   endif
@@ -803,10 +829,6 @@ Function SplineTranslateToRefNodeAtSpeedAndGotoState(ObjectReference arTarget, s
 endFunction
 
 Function TranslateToRefAtSpeed(ObjectReference arTarget, float afSpeed, float afMaxRotationSpeed)
-  if CheckViability()
-    return
-  endif
-
   SetMotionType(Motion_Keyframed, false)
   DoPathStartStuff()
 
@@ -815,9 +837,8 @@ Function TranslateToRefAtSpeed(ObjectReference arTarget, float afSpeed, float af
     return
   endif
 
-  if !CheckFor3D(dummyMarker)
+  if !dummyMarker.Is3DLoaded()
     DisableAndDelete(false)
-
     return
   endif
 
@@ -862,10 +883,6 @@ Function TranslateToRefNodeAtSpeedAndGotoState(ObjectReference arTarget, string 
 endFunction
 
 Function BellShapeTranslateToRefAtSpeed(ObjectReference arTarget, float afBellHeight, float afSpeed, float afMaxRotationSpeed)
-  if CheckViability()
-    return
-  endif
-
   SetMotionType(Motion_Keyframed, false)
   DoPathStartStuff()
 
@@ -874,7 +891,7 @@ Function BellShapeTranslateToRefAtSpeed(ObjectReference arTarget, float afBellHe
     return
   endif
 
-  if !CheckFor3D(dummyMarker)
+  if !dummyMarker.Is3DLoaded()
     DisableAndDelete(false)
     return
   endif
@@ -954,10 +971,6 @@ Function FlyAroundSpawner(float afMinTravel, float afMaxTravel, float afSpeed, f
   float newX = X + Utility.RandomFloat(afMinTravel, afMaxTravel)
   float newY = Y + Utility.RandomFloat(afMinTravel, afMaxTravel)
   float newZ = Z + Utility.RandomFloat(afMinTravel, afMaxTravel)
-
-  if CheckViability()
-    return
-  endif
 
   DoPathStartStuff()
 

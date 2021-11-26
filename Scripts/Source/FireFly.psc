@@ -78,6 +78,23 @@ int iGoToNewPlantChance = 20
 State AtPlant
 
   Event OnUpdate()
+    { Override. }
+    DoCritterBehavior()
+  endEvent
+
+  Function OnCritterGoalReached()
+    { Override. }
+    bFoundClosestActor = Game.FindClosestActorFromRef(self, fActorDetectionDistance) as bool
+
+    if bFoundClosestActor
+      DoCritterBehavior()
+    else
+      RegisterForSingleUpdate(Utility.RandomFloat(fTimeAtPlantMin, fTimeAtPlantMax))
+    endif
+  endFunction
+
+  Function DoCritterBehavior()
+    { Override. }
     if CheckViableDistance()
       if Spawner && Spawner.IsActiveTime()
         if bFoundClosestActor
@@ -91,23 +108,25 @@ State AtPlant
         SplineTranslateToRefAtSpeedAndGotoState(Spawner, fTranslationSpeedMean, fMaxRotationSpeed, "KillForTheNight")
       endif
     endif
-  endEvent
-
-  Event OnCritterGoalReached()
-    bFoundClosestActor = Game.FindClosestActorFromRef(self, fActorDetectionDistance) as bool
-
-    if bFoundClosestActor
-      RegisterForSingleUpdate(0.0)
-    else
-      RegisterForSingleUpdate(Utility.RandomFloat(fTimeAtPlantMin, fTimeAtPlantMax))
-    endif
-  endEvent
+  endFunction
 
 endState
 
 State Hovering
 
   Event OnUpdate()
+    { Override. }
+    DoCritterBehavior()
+  endEvent
+
+  Function OnCritterGoalReached()
+    { Override. }
+    bFoundClosestActor = Game.FindClosestActorFromRef(self, fActorDetectionDistance) as bool
+    DoCritterBehavior()
+  endFunction
+
+  Function DoCritterBehavior()
+    { Override. }
     if CheckViableDistance()
       if bFoundClosestActor
         GoToNewPlant(fFleeTranslationSpeed)
@@ -117,24 +136,21 @@ State Hovering
         HoverCloseBy()
       endif
     endif
-  endEvent
-
-  Event OnCritterGoalReached()
-    bFoundClosestActor = Game.FindClosestActorFromRef(self, fActorDetectionDistance) as bool
-    RegisterForSingleUpdate(0.0)
-  endEvent
+  endFunction
 
 endState
 
 State KillForTheNight
 
   Event OnUpdate()
+    { Override. }
     DisableAndDelete()
   endEvent
 
-  Event OnCritterGoalReached()
-    RegisterForSingleUpdate(0.0)
-  endEvent
+  Function OnCritterGoalReached()
+    { Override. }
+    DisableAndDelete()
+  endFunction
 
 endState
 
@@ -145,19 +161,16 @@ endState
 ;===============================================================================
 
 Function OnStart()
+  { Override. }
   SetScale(Utility.RandomFloat(fMinScale, fMaxScale))
   WarpToNewPlant()
   Enable()
-
-  if CheckViability()
-    return
-  endif
-
   SetMotionType(Motion_Keyframed, false)
   RegisterForSingleUpdate(0.0)
 endFunction
 
 Function TargetClear()
+  { Override. }
   currentPlant = none
 endFunction
 
@@ -172,12 +185,11 @@ Function HoverCloseBy()
     fTargetz = currentPlant.Z
   endif
 
-  GotoState("Hovering")
-
   if CheckViability()
     return
   endif
 
+  GotoState("Hovering")
   TranslateTo(ftargetX, ftargetY, ftargetZ, ftargetAngleX, 0.0, ftargetAngleZ, Utility.RandomFloat(10, 30), fMaxRotationSpeed)
 endFunction
 

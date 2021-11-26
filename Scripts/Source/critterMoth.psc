@@ -160,11 +160,6 @@ Function OnStart()
   SetScale(Utility.RandomFloat(fMinScale, fMaxScale))
   WarpToNewPlant()
   Enable()
-
-  if CheckViability()
-    return
-  endif
-
   SetMotionType(Motion_Keyframed, false)
   DoCritterBehavior()
 endFunction
