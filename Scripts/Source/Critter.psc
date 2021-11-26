@@ -730,38 +730,29 @@ bool Function PlaceLandingMarker(ObjectReference arTarget, string asTargetNode)
     float fAngleY = arTarget.GetAngleY()
     float fAngleZ = arTarget.GetAngleZ() + Utility.RandomFloat(fAngleVarianceZ * -1.0, fAngleVarianceZ)
 
-    if !landingMarker.Is3DLoaded() \
-        || !CheckCellAttached(landingMarker) \
-        || !arTarget.Is3DLoaded() \
-        || !CheckCellAttached(arTarget)
+    if !CheckFor3D(landingMarker)
       return true
     endif
 
     landingMarker.SetPosition(fPositionX, fPositionY, fPositionZ)
     landingMarker.SetAngle(fAngleX, fAngleY, fAngleZ)
   else
-    if !landingMarker.Is3DLoaded() \
-        || !CheckCellAttached(landingMarker) \
-        || !arTarget.Is3DLoaded() \
-        || !CheckCellAttached(arTarget)
+    if !CheckFor3D(landingMarker) || !CheckFor3D(arTarget)
       return true
     endif
 
-    landingMarker.SplineTranslateToRefNode(arTarget, asTargetNode, 0.0, 10000000000.0)
+    landingMarker.MoveToNode(arTarget, asTargetNode)
   endif
 
   return false
 endFunction
 
 bool Function PlaceDummyMarker(ObjectReference arTarget, string asTargetNode)
-  if !dummyMarker.Is3DLoaded() \
-      || !CheckCellAttached(dummyMarker) \
-      || !arTarget.Is3DLoaded() \
-      || !CheckCellAttached(arTarget)
+  if !CheckFor3D(dummyMarker) || !CheckFor3D(arTarget)
     return true
   endif
 
-  dummyMarker.SplineTranslateToRefNode(arTarget, asTargetNode, 0.0, 1000000000.0)
+  dummyMarker.MoveToNode(arTarget, asTargetNode)
   return false
 endFunction
 
@@ -781,7 +772,7 @@ Function SplineTranslateToRefAtSpeed(ObjectReference arTarget, float afSpeed, fl
     return
   endif
 
-  if !dummyMarker.Is3DLoaded()
+  if !CheckFor3D(dummyMarker)
     DisableAndDelete(false)
     return
   endif
@@ -837,7 +828,7 @@ Function TranslateToRefAtSpeed(ObjectReference arTarget, float afSpeed, float af
     return
   endif
 
-  if !dummyMarker.Is3DLoaded()
+  if !CheckFor3D(dummyMarker)
     DisableAndDelete(false)
     return
   endif
@@ -891,7 +882,7 @@ Function BellShapeTranslateToRefAtSpeed(ObjectReference arTarget, float afBellHe
     return
   endif
 
-  if !dummyMarker.Is3DLoaded()
+  if !CheckFor3D(dummyMarker)
     DisableAndDelete(false)
     return
   endif

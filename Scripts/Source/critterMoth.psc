@@ -181,7 +181,7 @@ ObjectReference Function PickNextPlant()
         && !nextPlant.IsDisabled() \
         && Game.FindClosestActorFromRef(nextPlant, fActorDetectionDistance) == none \
         && CheckCellAttached(nextPlant) \
-        && CheckFor3D(nextPlant)
+        && nextPlant.Is3DLoaded()
       return nextPlant
     endif
   endwhile
