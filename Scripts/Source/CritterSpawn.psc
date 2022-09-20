@@ -139,6 +139,14 @@ State PendingSpawnConditions
 
 endState
 
+State SpawningCritters
+
+  Function TryToSpawnCritters()
+    { Override. }
+  endFunction
+
+endState
+
 ;===============================================================================
 ;
 ; EVENTS
@@ -183,6 +191,7 @@ Function TryToSpawnCritters()
       float fPlayerDistance = (Game.GetForm(0x14) as Actor).GetDistance(self)
 
       if fPlayerDistance <= fMaxPlayerDistance
+        GotoState("SpawningCritters")
         SpawnInitialCritterBatch()
         GotoState("DoneSpawningCritters")
       else
