@@ -1,5 +1,5 @@
 ScriptName CritterSpawn extends ObjectReference
-{ Controller script for critter spawner .}
+{ Controller script for critter spawner.}
 
 ;===============================================================================
 ;
@@ -8,7 +8,7 @@ ScriptName CritterSpawn extends ObjectReference
 ;===============================================================================
 
 GlobalVariable property GameHour auto
-{ Make this point to the GameHour global }
+{ Make this point to the GameHour global. }
 
 FormList property CritterTypes auto
 { The base object to create references of to spawn critters. }
@@ -44,7 +44,7 @@ float property fLeashOverride auto
 { Optional: Manually set roaming radius for critters spawned. }
 
 bool property bSpawnInPrecipitation auto
-{ Should this critter spawn in rain/snow? }
+{ Whether this critter should spawn in rain or snow. }
 
 ;===============================================================================
 ;
@@ -62,7 +62,11 @@ int property iCurrentCritterCount = 0 auto hidden
 
 float fCheckPlayerDistanceTime = 2.0
 
+float fRandomizationInterval = 0.1
+
 float fCheckConditionsGameTime = 0.25
+
+float fPlayerDistanceScalingFactor = 0.001
 
 ;===============================================================================
 ;
@@ -118,7 +122,7 @@ State PendingSpawnConditions
 
   Event OnUpdateGameTime()
     GotoState("")
-    RegisterForSingleUpdate(fCheckPlayerDistanceTime)
+    RegisterForPlayerDistanceCheck()
   endEvent
 
   Function TryToSpawnCritters()
@@ -147,16 +151,16 @@ endEvent
 
 Event OnCellAttach()
   GotoState("")
-  RegisterForSingleUpdate(fCheckPlayerDistanceTime)
-endEvent
-
-Event OnCellDetach()
-  GotoState("DoneSpawningCritters")
+  RegisterForPlayerDistanceCheck()
 endEvent
 
 Event OnLoad()
   GotoState("")
-  RegisterForSingleUpdate(fCheckPlayerDistanceTime)
+  RegisterForPlayerDistanceCheck()
+endEvent
+
+Event OnCellDetach()
+  GotoState("DoneSpawningCritters")
 endEvent
 
 Event OnUnload()
@@ -169,6 +173,10 @@ endEvent
 ;
 ;===============================================================================
 
+Function RegisterForPlayerDistanceCheck()
+  RegisterForSingleUpdate(fCheckPlayerDistanceTime + Utility.RandomFloat(-fRandomizationInterval, fRandomizationInterval))
+endFunction
+
 Function TryToSpawnCritters()
   if IsLoaded()
     if IsActiveTime()
@@ -178,7 +186,7 @@ Function TryToSpawnCritters()
         SpawnInitialCritterBatch()
         GotoState("DoneSpawningCritters")
       else
-        RegisterForSingleUpdate(fCheckPlayerDistanceTime + (fPlayerDistance - fMaxPlayerDistance) * 0.001)
+        RegisterForSingleUpdate(fCheckPlayerDistanceTime + (fPlayerDistance - fMaxPlayerDistance) * fPlayerDistanceScalingFactor)
       endif
     else
       GotoState("PendingSpawnConditions")
