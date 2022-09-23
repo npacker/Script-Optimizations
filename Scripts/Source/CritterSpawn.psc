@@ -124,7 +124,7 @@ State DoneSpawningCritters
     { Override. }
   endFunction
 
-  Function SpawnCritterAtRef(ObjectReference arSpawnRef)
+  bool Function SpawnCritterAtRef(ObjectReference arSpawnRef)
     { Override. }
   endFunction
 
@@ -158,7 +158,7 @@ State PendingSpawnConditions
     { Override. }
   endFunction
 
-  Function SpawnCritterAtRef(ObjectReference arSpawnRef)
+  bool Function SpawnCritterAtRef(ObjectReference arSpawnRef)
     { Override. }
   endFunction
 
@@ -251,15 +251,17 @@ Function SpawnInitialCritterBatch()
 
   while crittersToSpawn > 0
     crittersToSpawn -= 1
-    SpawnCritterAtRef(self)
+    if SpawnCritterAtRef(self)
+      iCurrentCritterCount += 1
+    endif
   endwhile
 endFunction
 
-Function SpawnCritterAtRef(ObjectReference arSpawnRef)
+bool Function SpawnCritterAtRef(ObjectReference arSpawnRef)
   Activator critterType = CritterTypes.GetAt(Utility.RandomInt(0, CritterTypes.GetSize() - 1)) as Activator
 
   if critterType == none
-    return
+    return false
   endif
 
   Critter spawnedCritter = none
@@ -269,11 +271,11 @@ Function SpawnCritterAtRef(ObjectReference arSpawnRef)
   endif
 
   if spawnedCritter == none
-    return
+    return false
   endif
 
   spawnedCritter.SetInitialSpawnerProperties(fLeashLength, fLeashHeight, fLeashDepth, fMaxPlayerDistance + fLeashLength, self)
-  iCurrentCritterCount += 1
+  return true
 endFunction
 
 Function OnCritterDied()
