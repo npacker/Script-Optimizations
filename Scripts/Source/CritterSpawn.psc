@@ -54,6 +54,26 @@ bool property bSpawnInPrecipitation auto
 
 int property iCurrentCritterCount = 0 auto hidden
 
+Cell _ParentCell
+Cell Property ParentCell hidden
+  Cell Function Get()
+    if _ParentCell == none
+      _ParentCell = GetParentCell()
+    endif
+    return _ParentCell
+  endFunction
+endProperty
+
+Actor _PlayerRef
+Actor Property PlayerRef hidden
+  Actor Function Get()
+    if _PlayerRef == none
+      _PlayerRef = Game.GetForm(0x14) as Actor
+    endif
+    return _PlayerRef
+  endFunction
+endProperty
+
 ;===============================================================================
 ;
 ; VARIABLES
@@ -108,12 +128,17 @@ State DoneSpawningCritters
     { Override. }
   endFunction
 
+  bool Function IsLoaded()
+    { Override. }
+    return false
+  endFunction
+
 endState
 
 State PendingSpawnConditions
 
   Event OnBeginState()
-    RegisterForSingleUpdateGameTime(fCheckConditionsGameTime)
+    RegisterForSingleUpdateGameTime(fCheckConditionsGameTime + Utility.RandomFloat(fRandomizationInterval * -1.0, fRandomizationInterval))
   endEvent
 
   Event OnUpdate()
@@ -140,6 +165,22 @@ State PendingSpawnConditions
 endState
 
 State SpawningCritters
+
+  Event OnUpdate()
+    { Override. }
+  endEvent
+
+  Event OnUpdateGameTime()
+    { Override. }
+  endEvent
+
+  Event OnCellAttach()
+    { Override. }
+  endEvent
+
+  Event OnLoad()
+    { Override. }
+  endEvent
 
   Function TryToSpawnCritters()
     { Override. }
@@ -182,13 +223,13 @@ endEvent
 ;===============================================================================
 
 Function RegisterForPlayerDistanceCheck()
-  RegisterForSingleUpdate(fCheckPlayerDistanceTime + Utility.RandomFloat(-fRandomizationInterval, fRandomizationInterval))
+  RegisterForSingleUpdate(fCheckPlayerDistanceTime + Utility.RandomFloat(fRandomizationInterval * -1.0, fRandomizationInterval))
 endFunction
 
 Function TryToSpawnCritters()
   if IsLoaded()
     if IsActiveTime()
-      float fPlayerDistance = (Game.GetForm(0x14) as Actor).GetDistance(self)
+      float fPlayerDistance = PlayerRef.GetDistance(self)
 
       if fPlayerDistance <= fMaxPlayerDistance
         GotoState("SpawningCritters")
@@ -263,6 +304,5 @@ bool Function IsActiveTime()
 endFunction
 
 bool Function IsLoaded()
-  Cell ParentCell = GetParentCell()
-  return ParentCell && ParentCell.IsAttached() && Is3DLoaded()
+  return ParentCell != none && ParentCell.IsAttached() && Is3DLoaded()
 endFunction

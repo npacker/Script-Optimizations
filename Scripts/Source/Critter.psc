@@ -297,6 +297,11 @@ State Deleted
     return false
   endFunction
 
+  bool Function CheckFor3D(ObjectReference akObject)
+    { Override. }
+    return false
+  endFunction
+
   Function RegisterForSingleUpdate(float afInterval)
     { Override. }
   endFunction
@@ -383,6 +388,11 @@ State Deleting
   endFunction
 
   bool Function CheckViableDistance()
+    { Override. }
+    return false
+  endFunction
+
+  bool Function CheckFor3D(ObjectReference akObject)
     { Override. }
     return false
   endFunction
