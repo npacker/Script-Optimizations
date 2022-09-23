@@ -54,26 +54,6 @@ bool property bSpawnInPrecipitation auto
 
 int property iCurrentCritterCount = 0 auto hidden
 
-Cell _ParentCell
-Cell Property ParentCell hidden
-  Cell Function Get()
-    if _ParentCell == none
-      _ParentCell = GetParentCell()
-    endif
-    return _ParentCell
-  endFunction
-endProperty
-
-Actor _PlayerRef
-Actor Property PlayerRef hidden
-  Actor Function Get()
-    if _PlayerRef == none
-      _PlayerRef = Game.GetForm(0x14) as Actor
-    endif
-    return _PlayerRef
-  endFunction
-endProperty
-
 ;===============================================================================
 ;
 ; VARIABLES
@@ -96,18 +76,6 @@ float fPlayerDistanceScalingFactor = 0.001
 
 State DoneSpawningCritters
 
-  Event OnBeginState()
-    { Override. }
-  endEvent
-
-  Event OnUpdate()
-    { Override. }
-  endEvent
-
-  Event OnUpdateGameTime()
-    { Override. }
-  endEvent
-
   Event OnCellDetach()
     { Override. }
   endEvent
@@ -115,18 +83,6 @@ State DoneSpawningCritters
   Event OnUnload()
     { Override. }
   endEvent
-
-  Function TryToSpawnCritters()
-    { Override. }
-  endFunction
-
-  Function SpawnInitialCritterBatch()
-    { Override. }
-  endFunction
-
-  bool Function SpawnCritterAtRef(ObjectReference arSpawnRef)
-    { Override. }
-  endFunction
 
   bool Function IsLoaded()
     { Override. }
@@ -141,37 +97,29 @@ State PendingSpawnConditions
     RegisterForSingleUpdateGameTime(fCheckConditionsGameTime + Utility.RandomFloat(fRandomizationInterval * -1.0, fRandomizationInterval))
   endEvent
 
-  Event OnUpdate()
-    { Override. }
-  endEvent
-
   Event OnUpdateGameTime()
-    GotoState("")
+    GotoState("ReadyToSpawnCritters")
     RegisterForPlayerDistanceCheck()
   endEvent
 
-  Function TryToSpawnCritters()
-    { Override. }
-  endFunction
-
-  Function SpawnInitialCritterBatch()
-    { Override. }
-  endFunction
-
-  bool Function SpawnCritterAtRef(ObjectReference arSpawnRef)
-    { Override. }
-  endFunction
-
-endState
-
-State SpawningCritters
-
-  Event OnUpdate()
+  Event OnCellAttach()
     { Override. }
   endEvent
 
-  Event OnUpdateGameTime()
+  Event OnLoad()
     { Override. }
+  endEvent
+
+endState
+
+State ReadyToSpawnCritters
+
+  Event OnBeginState()
+    iCurrentCritterCount = 0
+  endEvent
+
+  Event OnUpdate()
+    TryToSpawnCritters()
   endEvent
 
   Event OnCellAttach()
@@ -183,7 +131,68 @@ State SpawningCritters
   endEvent
 
   Function TryToSpawnCritters()
+    if IsLoaded()
+      if IsActiveTime()
+        float fPlayerDistance = (Game.GetForm(0x14) as Actor).GetDistance(self)
+
+        if fPlayerDistance <= fMaxPlayerDistance
+          GotoState("SpawningCritters")
+          SpawnInitialCritterBatch()
+          GotoState("DoneSpawningCritters")
+        else
+          RegisterForSingleUpdate(fCheckPlayerDistanceTime + (fPlayerDistance - fMaxPlayerDistance) * fPlayerDistanceScalingFactor)
+        endif
+      else
+        GotoState("PendingSpawnConditions")
+      endif
+    else
+      GotoState("DoneSpawningCritters")
+    endif
+  endFunction
+
+endState
+
+State SpawningCritters
+
+  Event OnCellAttach()
     { Override. }
+  endEvent
+
+  Event OnLoad()
+    { Override. }
+  endEvent
+
+  Function SpawnInitialCritterBatch()
+    int iCrittersToSpawn = iMaxCritterCount - iCurrentCritterCount
+
+    while iCrittersToSpawn > 0
+      iCrittersToSpawn -= 1
+
+      if SpawnCritterAtRef(self)
+        iCurrentCritterCount += 1
+      endif
+    endwhile
+  endFunction
+
+  bool Function SpawnCritterAtRef(ObjectReference arSpawnRef)
+    Activator kCritterType = CritterTypes.GetAt(Utility.RandomInt(0, CritterTypes.GetSize() - 1)) as Activator
+
+    if kCritterType == none
+      return false
+    endif
+
+    Critter kSpawnedCritter = none
+
+    if IsLoaded()
+      kSpawnedCritter = arSpawnRef.PlaceAtMe(kCritterType, 1, false, true) as Critter
+    endif
+
+    if kSpawnedCritter == none
+      return false
+    endif
+
+    kSpawnedCritter.SetInitialSpawnerProperties(fLeashLength, fLeashHeight, fLeashDepth, fMaxPlayerDistance + fLeashLength, self)
+    return true
   endFunction
 
 endState
@@ -194,17 +203,13 @@ endState
 ;
 ;===============================================================================
 
-Event OnUpdate()
-  TryToSpawnCritters()
-endEvent
-
 Event OnCellAttach()
-  GotoState("")
+  GotoState("ReadyToSpawnCritters")
   RegisterForPlayerDistanceCheck()
 endEvent
 
 Event OnLoad()
-  GotoState("")
+  GotoState("ReadyToSpawnCritters")
   RegisterForPlayerDistanceCheck()
 endEvent
 
@@ -227,55 +232,15 @@ Function RegisterForPlayerDistanceCheck()
 endFunction
 
 Function TryToSpawnCritters()
-  if IsLoaded()
-    if IsActiveTime()
-      float fPlayerDistance = PlayerRef.GetDistance(self)
-
-      if fPlayerDistance <= fMaxPlayerDistance
-        GotoState("SpawningCritters")
-        SpawnInitialCritterBatch()
-        GotoState("DoneSpawningCritters")
-      else
-        RegisterForSingleUpdate(fCheckPlayerDistanceTime + (fPlayerDistance - fMaxPlayerDistance) * fPlayerDistanceScalingFactor)
-      endif
-    else
-      GotoState("PendingSpawnConditions")
-    endif
-  else
-    GotoState("DoneSpawningCritters")
-  endif
+  { Empty. }
 endFunction
 
 Function SpawnInitialCritterBatch()
-  int crittersToSpawn = iMaxCritterCount - iCurrentCritterCount
-
-  while crittersToSpawn > 0
-    crittersToSpawn -= 1
-    if SpawnCritterAtRef(self)
-      iCurrentCritterCount += 1
-    endif
-  endwhile
+  { Empty. }
 endFunction
 
 bool Function SpawnCritterAtRef(ObjectReference arSpawnRef)
-  Activator critterType = CritterTypes.GetAt(Utility.RandomInt(0, CritterTypes.GetSize() - 1)) as Activator
-
-  if critterType == none
-    return false
-  endif
-
-  Critter spawnedCritter = none
-
-  if IsLoaded()
-    spawnedCritter = arSpawnRef.PlaceAtMe(critterType, 1, false, true) as Critter
-  endif
-
-  if spawnedCritter == none
-    return false
-  endif
-
-  spawnedCritter.SetInitialSpawnerProperties(fLeashLength, fLeashHeight, fLeashDepth, fMaxPlayerDistance + fLeashLength, self)
-  return true
+  { Empty. }
 endFunction
 
 Function OnCritterDied()
@@ -284,6 +249,11 @@ Function OnCritterDied()
   else
     iCurrentCritterCount = 0
   endif
+endFunction
+
+bool Function IsLoaded()
+  Cell kParentCell = GetParentCell()
+  return kParentCell != none && kParentCell.IsAttached() && Is3DLoaded()
 endFunction
 
 bool Function IsActiveTime()
@@ -301,10 +271,8 @@ bool Function IsActiveTime()
     bInTimeRange = fCurrentGameHour >= fStartSpawnTime || fCurrentGameHour < fEndSpawnTime
   endif
 
-  bool bWeatherConditionsMet = bSpawnInPrecipitation || Weather.GetCurrentWeather() == none || Weather.GetCurrentWeather().GetClassification() < 2
-  return bInTimeRange && bWeatherConditionsMet
-endFunction
+  Weather kCurrentWeather = Weather.GetCurrentWeather()
 
-bool Function IsLoaded()
-  return ParentCell != none && ParentCell.IsAttached() && Is3DLoaded()
+  bool bWeatherConditionsMet = bSpawnInPrecipitation || kCurrentWeather == none || kCurrentWeather.GetClassification() < 2
+  return bInTimeRange && bWeatherConditionsMet
 endFunction
